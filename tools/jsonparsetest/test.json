@@ -1,0 +1,47 @@
+{
+    "@context": {
+      "@vocab": "https://schema.org/",
+      "csdco": "https://opencoredata.org/voc/csdco/1/",
+      "re3data": "http://example.org/re3data/0.1/"
+    },
+    "@id": "https://opencoredata.org/id/csdco/pkg/2028f26c495c16f29fe9225e62b3b68417577f6a4ab1ad0f71d35a7808be72e4",
+    "@type": "Dataset",
+    "about": "https://opencoredata.org/id/csdco/res/YUKON",
+    "description": "YUKON project: Geotek CIS (jpg) (6 files)",
+    "distribution": {
+      "@type": "DataDownload",
+      "contentUrl": "https://opencoredata.org/id/csdco/pkg/2028f26c495c16f29fe9225e62b3b68417577f6a4ab1ad0f71d35a7808be72e4",
+      "description": "data download"
+    },
+    "hasPart": [
+      {
+        "@type": "https://schema.org/DigitalDocument",
+        "url": "https://opencoredata.org/id/csdco/do/6b7db505df7b9f7cb887e7a0c393c629c28283e768939168d64146ef10585c2f"
+      },
+      {
+        "@type": "https://schema.org/DigitalDocument",
+        "url": "https://opencoredata.org/id/csdco/do/70c300039f08c55b7f0d6d5bc31212ba50353874d0f7aa6d0b1bf67991699332"
+      },
+      {
+        "@type": "https://schema.org/DigitalDocument",
+        "url": "https://opencoredata.org/id/csdco/do/22ee510dde701eda9df86022561d5019fe259768604824b653b2df8fae8055bd"
+      },
+      {
+        "@type": "https://schema.org/DigitalDocument",
+        "url": "https://opencoredata.org/id/csdco/do/63793b191a532279f394b58497ab718a5a93da197b91242ea044b82e44a24f41"
+      },
+      {
+        "@type": "https://schema.org/DigitalDocument",
+        "url": "https://opencoredata.org/id/csdco/do/feb3ab894bf9b719a2f238345b89eff808b6d9c78bc11f2fe8ec7f7a8cfa5552"
+      },
+      {
+        "@type": "https://schema.org/DigitalDocument",
+        "url": "https://opencoredata.org/id/csdco/do/6500a9d1238feba2a879e334881bd3924ac50b73e1ecb776579f45239dc3fd83"
+      }
+    ],
+    "keywords": "Geotek CIS (jpg) scientific drilling geoscience",
+    "license": "CC-0",
+    "name": "YUKON Dataset",
+    "url": "https://opencoredata.org/id/csdco/pkg/2028f26c495c16f29fe9225e62b3b68417577f6a4ab1ad0f71d35a7808be72e4"
+  }
+  

@@ -1,0 +1,19 @@
+{
+  "sparql": {
+    "endpoint": "http://192.168.86.45:32775/blazegraph/namespace/nabu/sparql"
+  },
+  "objects": {
+      "bucket": "gleaner",
+      "prefix": "milled/magic"
+  },
+  "minio": {
+    "address": "192.168.86.45",
+    "port": "32771",
+    "accesskey": "AKIAIOSFODNN7EXAMPLE",
+    "secretkey": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+  },
+  "txtai": {
+    "endpoint": "http://localhost:8000"
+  }
+}
+
