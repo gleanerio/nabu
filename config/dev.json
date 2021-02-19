@@ -1,10 +1,10 @@
 {
   "sparql": {
-    "endpoint": "http://192.168.86.45:32775/blazegraph/namespace/nabu/sparql"
+    "endpoint": "http://192.168.86.45:32775/blazegraph/namespace/lipd/sparql"
   },
   "objects": {
       "bucket": "gleaner",
-      "prefix": "milled/magic",
+      "prefix": "milled/lipdverse",
       "domain": "us-east-1"
   },
   "minio": {

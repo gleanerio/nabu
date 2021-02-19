@@ -11,6 +11,7 @@ import (
 
 	"github.com/UFOKN/nabu/internal/graph"
 	"github.com/UFOKN/nabu/internal/objects"
+	"github.com/schollz/progressbar/v3"
 
 	"github.com/minio/minio-go"
 	"github.com/spf13/viper"
@@ -46,13 +47,13 @@ func ObjectAssembly(v1 *viper.Viper, mc *minio.Client) error {
 	}
 
 	log.Printf("%s:%s object count: %d\n", objs["bucket"], objs["prefix"], len(oa))
-	//bar := progressbar.Default(int64(len(oa)))
+	bar := progressbar.Default(int64(len(oa)))
 	for item := range oa {
 		_, err := PipeLoad(v1, mc, objs["bucket"], oa[item], spql["endpoint"])
 		if err != nil {
 			log.Println(err)
 		}
-		//	bar.Add(1)
+		bar.Add(1)
 		// log.Println(string(s)) // get "s" on pipeload and send to a log file
 	}
 
@@ -86,7 +87,7 @@ func PipeLoad(v1 *viper.Viper, mc *minio.Client, bucket, object, spql string) ([
 	}
 
 	// drop any graph we are going to load..  we assume we are doing those due to an update...
-	_, err = drop(spql, g)
+	_, err = Drop(v1, g)
 	if err != nil {
 		log.Println(err)
 	}
@@ -125,13 +126,16 @@ func PipeLoad(v1 *viper.Viper, mc *minio.Client, bucket, object, spql string) ([
 	return []byte(resp.Status), err
 }
 
-func drop(spql, g string) ([]byte, error) {
+// Drop removes a graph
+func Drop(v1 *viper.Viper, g string) ([]byte, error) {
+
+	spql := v1.GetStringMapString("sparql")
 
 	d := fmt.Sprintf("DELETE { GRAPH <%s> {?s ?p ?o} } WHERE {GRAPH <%s> {?s ?p ?o}}", g, g)
 
 	pab := []byte(d)
 
-	req, err := http.NewRequest("POST", spql, bytes.NewBuffer(pab))
+	req, err := http.NewRequest("POST", spql["endpoint"], bytes.NewBuffer(pab))
 	req.Header.Set("Content-Type", "application/sparql-update")
 
 	client := &http.Client{}

@@ -8,6 +8,7 @@ import (
 
 	"github.com/UFOKN/nabu/internal/flows"
 	"github.com/UFOKN/nabu/internal/objects"
+	"github.com/UFOKN/nabu/internal/prune"
 	"github.com/UFOKN/nabu/internal/semsearch"
 	"github.com/UFOKN/nabu/internal/tika"
 
@@ -70,15 +71,22 @@ func main() {
 	// Select run mod
 
 	if !isFlagPassed("mode") {
-		fmt.Println("Mode must be set -mode one of tika, txtai, object, prefix")
+		fmt.Println("Mode must be set -mode one of prune, tika, txtai, object, prefix")
 		os.Exit(0)
 	}
 
 	switch modeVal {
 
+	case "prune":
+		fmt.Println("Prune graphs in triplestore not in object store")
+		err = prune.Snip(v1, mc)
+		if err != nil {
+			log.Println(err)
+		}
+
 	case "tika":
 		fmt.Println("Tika extract text from objects")
-		err = tika.Build(v1, mc)
+		err = tika.SingleBuild(v1, mc)
 		if err != nil {
 			log.Println(err)
 		}

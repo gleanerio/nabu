@@ -17,6 +17,8 @@ func NQToNTCtx(inquads string) (string, string, error) {
 	ntr := []rdf.Triple{}
 	g := ""
 
+	// HACK, delete thie..  was used to add missing . from tika index output (that is fixed now)
+	// dec := rdf.NewQuadDecoder(strings.NewReader(fmt.Sprintf("%s .", inquads)), rdf.NQuads)
 	dec := rdf.NewQuadDecoder(strings.NewReader(inquads), rdf.NQuads)
 	tr, err := dec.DecodeAll()
 	if err != nil {
