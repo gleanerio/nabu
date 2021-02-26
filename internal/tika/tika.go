@@ -63,7 +63,7 @@ func builder(v1 *viper.Viper, mc *minio.Client) {
 		defer lwg.Done()
 		var op string
 		if prefix == "" {
-			op = fmt.Sprint("website/fulltext.nq") // should this be website?
+			op = "website/fulltext.nq" // should this be website?
 		} else {
 			op = fmt.Sprintf("%s/website/fulltext.nq", prefix)
 		}

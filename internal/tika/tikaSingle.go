@@ -158,26 +158,26 @@ func EngineTika(v1 *viper.Viper, b []byte) (string, error) {
 	return processedString, err
 }
 
-func dedup(input string) string {
-	unique := []string{}
+//func dedup(input string) string {
+	//unique := []string{}
 
-	words := strings.Split(input, " ")
-	for _, word := range words {
-		// If we alredy have this word, skip.
-		if contains(unique, word) {
-			continue
-		}
-		unique = append(unique, word)
-	}
+	//words := strings.Split(input, " ")
+	//for _, word := range words {
+		//// If we alredy have this word, skip.
+		//if contains(unique, word) {
+			//continue
+		//}
+		//unique = append(unique, word)
+	//}
 
-	return strings.Join(unique, " ")
-}
+	//return strings.Join(unique, " ")
+//}
 
-func contains(strs []string, str string) bool {
-	for _, s := range strs {
-		if s == str {
-			return true
-		}
-	}
-	return false
-}
+//func contains(strs []string, str string) bool {
+	//for _, s := range strs {
+		//if s == str {
+			//return true
+		//}
+	//}
+	//return false
+//}

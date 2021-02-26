@@ -2,12 +2,10 @@ package semsearch
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"path"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/UFOKN/nabu/internal/context"
 	"github.com/UFOKN/nabu/internal/objects"
@@ -15,7 +13,6 @@ import (
 	"github.com/minio/minio-go"
 	"github.com/neuml/txtai.go"
 	"github.com/spf13/viper"
-	"github.com/tidwall/gjson"
 )
 
 type DataFrame struct {
@@ -194,62 +191,3 @@ func httpDesc(b []byte) (string, error) {
 	return "", nil
 }
 
-// parseloader is similar to frameloader but attempts to do it with JSON parsing only
-func parseloader(v1 *viper.Viper, mc *minio.Client, oa []string) ([]byte, error) {
-	fmt.Println("Parse loader called")
-
-	objs := v1.GetStringMapString("objects")
-	//t := v1.GetStringMapString("txtaipkg")
-
-	//	embeddings := txtai.Embeddings(t["endpoint"])
-
-	for item := range oa {
-		// s, err := loader(v1, mc, objs["bucket"], oa[item], spql["endpoint"])
-
-		//  Change the object name or pass the bucket for txtai from the config (which would be better)
-		jo := strings.Replace(oa[item], "milled", "summoned", 1)
-		jo2 := strings.Replace(jo, ".rdf", ".jsonld", 1)
-
-		b, _, err := objects.GetS3Bytes(mc, objs["bucket"], jo2)
-		if err != nil {
-			log.Printf("%s : %s \n", objs["bucket"], jo2)
-			log.Println(err)
-			continue
-		}
-
-		desc := gjson.Get(string(b), "description")
-		if desc.String() == "" {
-			desc = gjson.Get(string(b), "@graph[1].https://schema.org/description.@value")
-		}
-
-		// TODO   is a content search different than a metadata search
-		// or should I blend them?
-
-		if desc.String() == "" {
-			log.Printf("%s : %s : no description found \n", objs["bucket"], jo2)
-		} else {
-
-			// TESTING LINE TO SKIP THE FOLLOWING CODE
-			log.Printf("Description found %s len(%d) \n", jo2, len(desc.String()))
-
-			// get the base part only of the object
-			//osplt := strings.Split(oa[item], "/")
-			//o := osplt[len(osplt)-1]
-			////fmt.Printf("%s \n", strings.TrimSuffix(o, path.Ext(o)))
-
-			//// log.Println(df[0].Description)
-			//var documents []txtai.Document
-			//td := txtai.Document{Id: strings.TrimSuffix(o, path.Ext(o)), Text: desc.String()}
-			//documents = append(documents, td)
-			//embeddings.Add(documents)
-		}
-		// fmt.Printf("%s %s \n", oa[item], df[0].Description)
-
-	}
-
-	log.Println("Calling indexing, this will take some time. ")
-	time.Sleep(10 * time.Second)
-	//	embeddings.Index()
-
-	return nil, nil
-}

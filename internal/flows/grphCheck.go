@@ -25,6 +25,9 @@ func gexists(spql, g string) (bool, error) {
 	params := url.Values{}
 	params.Add("query", d)
 	req, err := http.NewRequest("GET", fmt.Sprintf("%s?%s", spql, params.Encode()), bytes.NewBuffer(pab))
+	if err != nil {
+		log.Println(err)
+	}
 	req.Header.Set("Accept", "application/sparql-results+json")
 
 	client := &http.Client{}
@@ -32,6 +35,7 @@ func gexists(spql, g string) (bool, error) {
 	if err != nil {
 		log.Println(err)
 	}
+
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)

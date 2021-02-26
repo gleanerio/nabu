@@ -75,7 +75,7 @@ func GetS3Bytes(mc *minio.Client, bucket, object string) ([]byte, string, error)
 
 	sz := oi.Size        // what type is this...
 	if sz > 1073741824 { // if bigger than 1 GB (which is very small) move on
-		return nil, "", errors.New("File above tika processing set threshhold")
+		return nil, "", errors.New("file above tika processing size threshhold")
 	}
 
 	// TODO..   set an upper byte size  limit here and return error if the size is too big

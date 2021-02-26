@@ -76,6 +76,9 @@ func graphList(v1 *viper.Viper, mc *minio.Client) ([]string, error) {
 	params := url.Values{}
 	params.Add("query", d)
 	req, err := http.NewRequest("GET", fmt.Sprintf("%s?%s", spql["endpoint"], params.Encode()), bytes.NewBuffer(pab))
+	if err != nil {
+		log.Println(err)
+	}
 	req.Header.Set("Accept", "application/sparql-results+json")
 
 	client := &http.Client{}
@@ -83,6 +86,7 @@ func graphList(v1 *viper.Viper, mc *minio.Client) ([]string, error) {
 	if err != nil {
 		log.Println(err)
 	}
+
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)

@@ -107,6 +107,9 @@ func PipeLoad(v1 *viper.Viper, mc *minio.Client, bucket, object, spql string) ([
 	pab = append(pab, uab...)
 
 	req, err := http.NewRequest("POST", spql, bytes.NewBuffer(pab))
+	if err != nil {
+		log.Println(err)
+	}
 	req.Header.Set("Content-Type", "application/sparql-update")
 
 	client := &http.Client{}
@@ -136,6 +139,9 @@ func Drop(v1 *viper.Viper, g string) ([]byte, error) {
 	pab := []byte(d)
 
 	req, err := http.NewRequest("POST", spql["endpoint"], bytes.NewBuffer(pab))
+	if err != nil {
+		log.Println(err)
+	}
 	req.Header.Set("Content-Type", "application/sparql-update")
 
 	client := &http.Client{}

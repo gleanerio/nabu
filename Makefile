@@ -1,14 +1,10 @@
 DOCKERVER :=`cat VERSION`
-.DEFAULT_GOAL := loadv2 
- 
-loadGraphs:
-	cd cmd/loadGraphs; \
-	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 env go build -o loadGraphs
+.DEFAULT_GOAL := nabu
  
   
-loadv2:
-	cd cmd/loadv2; \
-	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 env go build -o loadv2
+nabu:
+	cd cmd/nabu; \
+	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 env go build -o nabu
 
-releases:    loadGraphs loadv2
+releases:    nabu
 
