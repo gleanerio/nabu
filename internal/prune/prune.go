@@ -2,6 +2,7 @@ package prune
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -11,7 +12,7 @@ import (
 	"sync"
 
 	"github.com/UFOKN/nabu/internal/flows"
-	"github.com/minio/minio-go"
+	"github.com/minio/minio-go/v7"
 	"github.com/schollz/progressbar/v3"
 	"github.com/spf13/viper"
 	"github.com/tidwall/gjson"
@@ -70,6 +71,7 @@ func graphList(v1 *viper.Viper, mc *minio.Client) ([]string, error) {
 	objs := v1.GetStringMapString("objects")
 
 	gp := fmt.Sprintf("urn:%s:%s", objs["bucket"], strings.Replace(objs["prefix"], "/", ":", -1))
+	fmt.Printf("Pattern: %s\n", gp)
 
 	d := fmt.Sprintf("SELECT DISTINCT ?g WHERE {GRAPH ?g {?s ?p ?o} FILTER regex(str(?g), \"^%s\")}", gp)
 	pab := []byte("")
@@ -121,11 +123,14 @@ func ObjectList(v1 *viper.Viper, mc *minio.Client) ([]string, error) {
 	// params for list objects calls
 	doneCh := make(chan struct{}) // , N) Create a done channel to control 'ListObjectsV2' go routine.
 	defer close(doneCh)           // Indicate to our routine to exit cleanly upon return.
-	isRecursive := true
+	// isRecursive := true
 
 	oa := []string{}
 
-	for object := range mc.ListObjectsV2(objs["bucket"], objs["prefix"], isRecursive, doneCh) {
+	// for object := range mc.ListObjectsV2(objs["bucket"], objs["prefix"], isRecursive, doneCh) {
+	for object := range mc.ListObjects(context.Background(), objs["bucket"],
+		minio.ListObjectsOptions{Prefix: objs["prefix"], Recursive: true}) {
+
 		wg.Add(1)
 		go func(object minio.ObjectInfo) {
 			oa = append(oa, object.Key) // WARNING  append is not always thread safe..   wg of 1 till I address this

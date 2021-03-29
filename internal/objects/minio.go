@@ -2,11 +2,14 @@ package objects
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"log"
+	"strconv"
 
-	"github.com/minio/minio-go"
+	"github.com/minio/minio-go/v7"
+	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/spf13/viper"
 )
 
@@ -19,13 +22,13 @@ type Entry struct {
 }
 
 // Set up minio and initialize client
-func MinioConnectionOLDDLETEME(ep, ak, sk string, ssl bool) *minio.Client {
-	minioClient, err := minio.New(ep, ak, sk, ssl)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	return minioClient
-}
+// func MinioConnectionOLDDLETEME(ep, ak, sk string, ssl bool) *minio.Client {
+// 	minioClient, err := minio.New(ep, ak, sk, ssl)
+// 	if err != nil {
+// 		log.Fatalln(err)
+// 	}
+// 	return minioClient
+// }
 
 // MinioConnection Set up minio and initialize client
 func MinioConnection(v1 *viper.Viper) *minio.Client {
@@ -34,16 +37,29 @@ func MinioConnection(v1 *viper.Viper) *minio.Client {
 	endpoint := fmt.Sprintf("%s:%s", mcfg["address"], mcfg["port"])
 	accessKeyID := mcfg["accesskey"]
 	secretAccessKey := mcfg["secretkey"]
-	useSSL := false
-	minioClient, err := minio.New(endpoint, accessKeyID, secretAccessKey, useSSL)
+	useSSL, err := strconv.ParseBool(fmt.Sprintf("%s", mcfg["useSSL"]))
+	// if err != nil {
+	// 	// return nil, err
+	// 	log.Println(err)
+	// }
+
+	// minioClient, err := minio.New(endpoint, accessKeyID, secretAccessKey, true)
+	minioClient, err := minio.New(endpoint,
+		&minio.Options{Creds: credentials.NewStaticV4(accessKeyID, secretAccessKey, ""),
+			Secure: useSSL})
 	if err != nil {
 		log.Fatalln(err)
 	}
+	// minioClient.SetCustomTransport(&http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}})
+	// if err != nil {
+	// 	log.Fatalln(err)
+	// }
 	return minioClient
 }
 
+// GetS3Bytes simply pulls the byes of an object from the store
 func GetS3Bytes(mc *minio.Client, bucket, object string) ([]byte, string, error) {
-	fo, err := mc.GetObject(bucket, object, minio.GetObjectOptions{})
+	fo, err := mc.GetObject(context.Background(), bucket, object, minio.GetObjectOptions{})
 	if err != nil {
 		fmt.Println(err)
 		return nil, "", err
@@ -90,8 +106,14 @@ func GetS3Bytes(mc *minio.Client, bucket, object string) ([]byte, string, error)
 func GetObjects(mc *minio.Client, bucketname string) []Entry {
 	doneCh := make(chan struct{}) // Create a done channel to control 'ListObjectsV2' go routine.
 	defer close(doneCh)           // Indicate to our routine to exit cleanly upon return.
-	isRecursive := true
-	objectCh := mc.ListObjects(bucketname, "", isRecursive, doneCh) // no v2 for swift
+
+	// isRecursive := true
+	// objectCh := mc.ListObjects(context.Background(), bucketname, "", isRecursive, doneCh) // no v2 for swift
+
+	objectCh := mc.ListObjects(context.Background(), bucketname, minio.ListObjectsOptions{
+		Prefix:    "",
+		Recursive: true,
+	}) // no v2 for swift
 
 	var entries []Entry
 
@@ -104,7 +126,7 @@ func GetObjects(mc *minio.Client, bucketname string) []Entry {
 		// May need optional check here for .jsonld
 		// or object metadata too...
 
-		fo, err := mc.GetObject(bucketname, object.Key, minio.GetObjectOptions{})
+		fo, err := mc.GetObject(context.Background(), bucketname, object.Key, minio.GetObjectOptions{})
 		if err != nil {
 			fmt.Println(err)
 			return nil
@@ -146,7 +168,7 @@ func PutS3Bytes(mc *minio.Client, bucketName, objectName, mimeType string, objec
 	usermeta["sha1"] = "bss"
 
 	// Upload the file with FPutObject
-	n, err := mc.PutObject(bucketName, objectName, bytes.NewReader(object), int64(len(object)), minio.PutObjectOptions{ContentType: mimeType, UserMetadata: usermeta})
+	n, err := mc.PutObject(context.Background(), bucketName, objectName, bytes.NewReader(object), int64(len(object)), minio.PutObjectOptions{ContentType: mimeType, UserMetadata: usermeta})
 	if err != nil {
 		log.Printf("%s", objectName)
 		log.Fatalln(err)

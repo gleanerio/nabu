@@ -1,13 +1,14 @@
 package tika
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"log"
 	"strings"
 	"sync"
 
-	"github.com/minio/minio-go"
+	"github.com/minio/minio-go/v7"
 	"github.com/spf13/viper"
 )
 
@@ -31,7 +32,7 @@ func builder(v1 *viper.Viper, mc *minio.Client) {
 	// Create a done channel.
 	doneCh := make(chan struct{})
 	defer close(doneCh)
-	recursive := true
+	// recursive := true
 
 	// Pipecopy elements
 	pr, pw := io.Pipe()     // TeeReader of use?
@@ -42,8 +43,9 @@ func builder(v1 *viper.Viper, mc *minio.Client) {
 		defer lwg.Done()
 		defer pw.Close()
 
-		// WARNING hard coded "prefix" here
-		for message := range mc.ListObjectsV2(bucket, fmt.Sprintf("%s/csdco/do", prefix), recursive, doneCh) {
+		// WARNING hard coded "prefix" WAS  here   need to test
+		for message := range mc.ListObjects(context.Background(), objs["bucket"],
+			minio.ListObjectsOptions{Prefix: objs["prefix"], Recursive: true}) {
 
 			if !strings.HasSuffix(message.Key, ".jsonld") {
 				log.Println(message.Key)
@@ -70,7 +72,7 @@ func builder(v1 *viper.Viper, mc *minio.Client) {
 
 		log.Println(op)
 
-		_, err := mc.PutObject(bucket, op, pr, -1, minio.PutObjectOptions{}) // TODO  this is potentially dangerous..  it will over write this object at least
+		_, err := mc.PutObject(context.Background(), bucket, op, pr, -1, minio.PutObjectOptions{}) // TODO  this is potentially dangerous..  it will over write this object at least
 		if err != nil {
 			log.Println(err)
 		}

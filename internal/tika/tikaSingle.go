@@ -3,6 +3,7 @@ package tika
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -16,7 +17,7 @@ import (
 	"github.com/UFOKN/nabu/internal/prune"
 	"github.com/schollz/progressbar/v3"
 
-	"github.com/minio/minio-go"
+	"github.com/minio/minio-go/v7"
 	"github.com/spf13/viper"
 )
 
@@ -68,7 +69,7 @@ func SingleBuild(v1 *viper.Viper, mc *minio.Client) error {
 		t, err := fullTextTrpls(s, oa[n])
 
 		bs := bytes.NewBufferString(t)
-		_, err = mc.PutObject(tb, to, bs, int64(bs.Len()), minio.PutObjectOptions{})
+		_, err = mc.PutObject(context.Background(), tb, to, bs, int64(bs.Len()), minio.PutObjectOptions{})
 		if err != nil {
 			fmt.Printf("putObject error:  %v\n", err)
 		}
@@ -80,7 +81,7 @@ func SingleBuild(v1 *viper.Viper, mc *minio.Client) error {
 // ObjectExists returns true if the object is found
 func ObjectExists(mc *minio.Client, bucket, object string) error {
 
-	_, err := mc.StatObject(bucket, object, minio.StatObjectOptions{})
+	_, err := mc.StatObject(context.Background(), bucket, object, minio.StatObjectOptions{})
 	if err != nil {
 		fmt.Println(err)
 		return err
@@ -90,7 +91,7 @@ func ObjectExists(mc *minio.Client, bucket, object string) error {
 }
 
 func processObject(v1 *viper.Viper, mc *minio.Client, bucket, prefix string, message minio.ObjectInfo) (string, error) {
-	fo, err := mc.GetObject(bucket, message.Key, minio.GetObjectOptions{})
+	fo, err := mc.GetObject(context.Background(), bucket, message.Key, minio.GetObjectOptions{})
 	if err != nil {
 		log.Printf("get object %s", err)
 		// return "", err
@@ -159,25 +160,25 @@ func EngineTika(v1 *viper.Viper, b []byte) (string, error) {
 }
 
 //func dedup(input string) string {
-	//unique := []string{}
+//unique := []string{}
 
-	//words := strings.Split(input, " ")
-	//for _, word := range words {
-		//// If we alredy have this word, skip.
-		//if contains(unique, word) {
-			//continue
-		//}
-		//unique = append(unique, word)
-	//}
+//words := strings.Split(input, " ")
+//for _, word := range words {
+//// If we alredy have this word, skip.
+//if contains(unique, word) {
+//continue
+//}
+//unique = append(unique, word)
+//}
 
-	//return strings.Join(unique, " ")
+//return strings.Join(unique, " ")
 //}
 
 //func contains(strs []string, str string) bool {
-	//for _, s := range strs {
-		//if s == str {
-			//return true
-		//}
-	//}
-	//return false
+//for _, s := range strs {
+//if s == str {
+//return true
+//}
+//}
+//return false
 //}

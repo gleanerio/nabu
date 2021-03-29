@@ -26,7 +26,6 @@ func init() {
 	flag.StringVar(&viperVal, "cfg", "config.json", "Configuration file")
 	flag.StringVar(&prefixVal, "prefix", "", "Prefix to override config file setting")
 	flag.StringVar(&modeVal, "mode", "", "What Nabu should do: tika, txtai, object, prefix")
-
 }
 
 func main() {
@@ -108,7 +107,7 @@ func main() {
 		log.Println(string(s))
 
 	case "prefix":
-		fmt.Println("Load graphs in prefix to triplestore")
+		fmt.Println("Load graphs from prefix to triplestore")
 		err = flows.ObjectAssembly(v1, mc)
 		if err != nil {
 			log.Println(err)

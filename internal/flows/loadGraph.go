@@ -9,7 +9,7 @@ import (
 	"github.com/UFOKN/nabu/internal/triplestore"
 
 	"github.com/gosuri/uiprogress"
-	"github.com/minio/minio-go"
+	"github.com/minio/minio-go/v7"
 )
 
 // LoadGraph attempts to load data from srcbkt into graph.  It assumes the data is stored in JSON-LD

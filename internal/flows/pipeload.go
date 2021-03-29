@@ -2,48 +2,52 @@ package flows
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io/ioutil"
 	"log"
+	"mime"
 	"net/http"
+	"path/filepath"
 	"strings"
-	"sync"
 
 	"github.com/UFOKN/nabu/internal/graph"
 	"github.com/UFOKN/nabu/internal/objects"
 	"github.com/schollz/progressbar/v3"
 
-	"github.com/minio/minio-go"
+	"github.com/minio/minio-go/v7"
 	"github.com/spf13/viper"
 )
 
 // ObjectAssembly collects the objects from a bucket to load
 func ObjectAssembly(v1 *viper.Viper, mc *minio.Client) error {
-
 	objs := v1.GetStringMapString("objects")
 	spql := v1.GetStringMapString("sparql")
 
 	// My go func controller vars
 	semaphoreChan := make(chan struct{}, 1) // a blocking channel to keep concurrency under control (1 == single thread)
 	defer close(semaphoreChan)
-	wg := sync.WaitGroup{} // a wait group enables the main process a wait for goroutines to finish
+	// wg := sync.WaitGroup{} // a wait group enables the main process a wait for goroutines to finish
 
 	// params for list objects calls
 	doneCh := make(chan struct{}) // , N) Create a done channel to control 'ListObjectsV2' go routine.
 	defer close(doneCh)           // Indicate to our routine to exit cleanly upon return.
-	isRecursive := true
 
 	oa := []string{}
 
-	for object := range mc.ListObjectsV2(objs["bucket"], objs["prefix"], isRecursive, doneCh) {
-		wg.Add(1)
-		go func(object minio.ObjectInfo) {
-			oa = append(oa, object.Key) // WARNING  append is not always thread safe..   wg of 1 till I address this
-			wg.Done()                   // tell the wait group that we be done
-			// log.Printf("Doc: %s error: %v ", name, err) // why print the status??
-			<-semaphoreChan
-		}(object)
-		wg.Wait()
+	// NEW
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	objectCh := mc.ListObjects(ctx, objs["bucket"],
+		minio.ListObjectsOptions{Prefix: objs["prefix"], Recursive: true})
+
+	for object := range objectCh {
+		if object.Err != nil {
+			fmt.Println(object.Err)
+			return object.Err
+		}
+		// fmt.Println(object)
+		oa = append(oa, object.Key)
 	}
 
 	log.Printf("%s:%s object count: %d\n", objs["bucket"], objs["prefix"], len(oa))
@@ -81,9 +85,26 @@ func PipeLoad(v1 *viper.Viper, mc *minio.Client, bucket, object, spql string) ([
 		fmt.Printf("gets3Bytes %v\n", err)
 	}
 
-	nt, _, err := graph.NQToNTCtx(string(b))
-	if err != nil {
-		log.Printf("nqToNTCtx err: %s", err)
+	// check the object string
+
+	// log.Println(mt) // application/ld+json
+
+	// TODO, use the mimetype or suffix in general to select the
+	// path to load    or overload from the config file?
+
+	mt := mime.TypeByExtension(filepath.Ext(object))
+	nt := ""
+
+	if strings.Compare(mt, "application/ld+json") == 0 {
+		nt, err = graph.JSONLDToNQ(string(b))
+		if err != nil {
+			log.Printf("JSONLDToNQ err: %s", err)
+		}
+	} else {
+		nt, _, err = graph.NQToNTCtx(string(b))
+		if err != nil {
+			log.Printf("nqToNTCtx err: %s", err)
+		}
 	}
 
 	// drop any graph we are going to load..  we assume we are doing those due to an update...
@@ -160,3 +181,28 @@ func Drop(v1 *viper.Viper, g string) ([]byte, error) {
 
 	return body, err
 }
+
+// OLD
+// for object := range mc.ListObjects(context.Background(), objs["bucket"],
+// 	minio.ListObjectsOptions{Prefix: objs["prefix"], Recursive: true}) {
+
+// 	wg.Add(1)
+// 	go func(object minio.ObjectInfo) {
+// 		// TEMP HACK for UFOKN
+// 		// if objs["objectsuffix"] != "" {
+// 		// 	if strings.HasSuffix(object.Key, objs["objectsuffix"]) {
+// 		// 		// log.Println(object.Key)
+// 		// 		oa = append(oa, object.Key) // WARNING  append is not always thread safe..   wg of 1 till I address this
+// 		// 	}
+// 		// } else {
+// 		// log.Println(object.Key)
+
+// 		oa = append(oa, object.Key) // WARNING  append is not always thread safe..   wg of 1 till I address this
+// 		// }
+
+// 		wg.Done() // tell the wait group that we be done
+// 		// log.Printf("Doc: %s error: %v ", name, err) // why print the status??
+// 		<-semaphoreChan
+// 	}(object)
+// 	wg.Wait()
+// }

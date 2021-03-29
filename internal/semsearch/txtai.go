@@ -1,16 +1,17 @@
 package semsearch
 
 import (
+	"context"
 	"encoding/json"
 	"log"
 	"path"
 	"strings"
 	"sync"
 
-	"github.com/UFOKN/nabu/internal/context"
+	"github.com/UFOKN/nabu/internal/jsonld"
 	"github.com/UFOKN/nabu/internal/objects"
 
-	"github.com/minio/minio-go"
+	"github.com/minio/minio-go/v7"
 	"github.com/neuml/txtai.go"
 	"github.com/spf13/viper"
 )
@@ -32,10 +33,12 @@ func ObjectAssembly(v1 *viper.Viper, mc *minio.Client) error {
 	// params for list objects calls
 	doneCh := make(chan struct{}) // , N) Create a done channel to control 'ListObjectsV2' go routine.
 	defer close(doneCh)           // Indicate to our routine to exit cleanly upon return.
-	isRecursive := true
+	// isRecursive := true
 
 	oa := []string{}
-	for object := range mc.ListObjectsV2(objs["bucket"], objs["prefix"], isRecursive, doneCh) {
+	// for object := range mc.ListObjects(objs["bucket"], objs["prefix"], isRecursive, doneCh) {
+	for object := range mc.ListObjects(context.Background(), objs["bucket"],
+		minio.ListObjectsOptions{Prefix: objs["prefix"], Recursive: true}) {
 		wg.Add(1)
 		go func(object minio.ObjectInfo) {
 			// log.Println(object.Key)
@@ -108,7 +111,7 @@ func frameloader(v1 *viper.Viper, mc *minio.Client, oa []string) ([]byte, error)
 }
 
 func httpsDesc(b []byte) (string, error) {
-	proc, options := context.JLDProc()
+	proc, options := jsonld.JLDProc()
 
 	// "@type":       "Dataset",
 	frame := map[string]interface{}{
@@ -150,7 +153,7 @@ func httpsDesc(b []byte) (string, error) {
 }
 
 func httpDesc(b []byte) (string, error) {
-	proc, options := context.JLDProc()
+	proc, options := jsonld.JLDProc()
 
 	// "@type":       "Dataset",
 	frame := map[string]interface{}{
@@ -190,4 +193,3 @@ func httpDesc(b []byte) (string, error) {
 
 	return "", nil
 }
-
