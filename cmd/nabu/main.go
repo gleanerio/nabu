@@ -76,6 +76,13 @@ func main() {
 
 	switch modeVal {
 
+	case "prefix":
+		fmt.Println("Load graphs from prefix to triplestore")
+		err = flows.ObjectAssembly(v1, mc)
+		if err != nil {
+			log.Println(err)
+		}
+
 	case "prune":
 		fmt.Println("Prune graphs in triplestore not in object store")
 		err = prune.Snip(v1, mc)
@@ -105,13 +112,6 @@ func main() {
 			log.Println(err)
 		}
 		log.Println(string(s))
-
-	case "prefix":
-		fmt.Println("Load graphs from prefix to triplestore")
-		err = flows.ObjectAssembly(v1, mc)
-		if err != nil {
-			log.Println(err)
-		}
 
 	}
 

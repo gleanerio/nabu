@@ -28,50 +28,61 @@ func SingleBuild(v1 *viper.Viper, mc *minio.Client) error {
 	tb := tkcfg["outbucket"]
 	tp := tkcfg["outprefix"]
 
-	// collect the objects...
-	oa, err := prune.ObjectList(v1, mc)
+	var pa []string
+	err := v1.UnmarshalKey("objects.prefix", &pa)
 	if err != nil {
 		log.Println(err)
-		return err
 	}
 
-	fmt.Printf("Object items: %d   \n", len(oa))
+	fmt.Println(pa)
 
-	// read the bytes and feed into tika
-	bar := progressbar.Default(int64(len(oa)))
-	for n := range oa {
-		bar.Add(1)
+	for p := range pa {
 
-		// check it's not a .jsonld file, we don't tika index those
-		if strings.HasSuffix(oa[n], ".jsonld") {
-			continue
-		}
-
-		// Get the names for the target bucket and prefix we will use, so we can check for them
-		// to see if they exist already.
-		na := strings.Split(oa[n], "/")
-		nl := na[len(na)-1]
-		nb := strings.TrimSuffix(nl, filepath.Ext(nl))
-		to := fmt.Sprintf("%s/%s.rdf", tp, nb)
-
-		// TODO need a way to skip this check in case we want to force rebuild all files (cfg file option)
-		// check we haven't already don't this file
-		if ObjectExists(mc, tb, to) == nil {
-			continue
-		}
-
-		// Get the bytes and generate the triples
-		b, _, err := objects.GetS3Bytes(mc, objs["bucket"], oa[n])
+		// collect the objects...
+		oa, err := prune.ObjectList(v1, mc, pa[p])
 		if err != nil {
-			fmt.Printf("gets3Bytes %v\n", err)
+			log.Println(err)
+			return err
 		}
-		s, err := EngineTika(v1, b)
-		t, err := fullTextTrpls(s, oa[n])
 
-		bs := bytes.NewBufferString(t)
-		_, err = mc.PutObject(context.Background(), tb, to, bs, int64(bs.Len()), minio.PutObjectOptions{})
-		if err != nil {
-			fmt.Printf("putObject error:  %v\n", err)
+		fmt.Printf("Object items: %d   \n", len(oa))
+
+		// read the bytes and feed into tika
+		bar := progressbar.Default(int64(len(oa)))
+		for n := range oa {
+			bar.Add(1)
+
+			// check it's not a .jsonld file, we don't tika index those
+			if strings.HasSuffix(oa[n], ".jsonld") {
+				continue
+			}
+
+			// Get the names for the target bucket and prefix we will use, so we can check for them
+			// to see if they exist already.
+			na := strings.Split(oa[n], "/")
+			nl := na[len(na)-1]
+			nb := strings.TrimSuffix(nl, filepath.Ext(nl))
+			to := fmt.Sprintf("%s/%s.rdf", tp, nb)
+
+			// TODO need a way to skip this check in case we want to force rebuild all files (cfg file option)
+			// check we haven't already don't this file
+			if ObjectExists(mc, tb, to) == nil {
+				continue
+			}
+
+			// Get the bytes and generate the triples
+			b, _, err := objects.GetS3Bytes(mc, objs["bucket"], oa[n])
+			if err != nil {
+				fmt.Printf("gets3Bytes %v\n", err)
+			}
+			s, err := EngineTika(v1, b)
+			t, err := fullTextTrpls(s, oa[n])
+
+			bs := bytes.NewBufferString(t)
+			_, err = mc.PutObject(context.Background(), tb, to, bs, int64(bs.Len()), minio.PutObjectOptions{})
+			if err != nil {
+				fmt.Printf("putObject error:  %v\n", err)
+			}
 		}
 	}
 

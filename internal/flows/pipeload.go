@@ -33,32 +33,42 @@ func ObjectAssembly(v1 *viper.Viper, mc *minio.Client) error {
 	doneCh := make(chan struct{}) // , N) Create a done channel to control 'ListObjectsV2' go routine.
 	defer close(doneCh)           // Indicate to our routine to exit cleanly upon return.
 
-	oa := []string{}
-
-	// NEW
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	objectCh := mc.ListObjects(ctx, objs["bucket"],
-		minio.ListObjectsOptions{Prefix: objs["prefix"], Recursive: true})
-
-	for object := range objectCh {
-		if object.Err != nil {
-			fmt.Println(object.Err)
-			return object.Err
-		}
-		// fmt.Println(object)
-		oa = append(oa, object.Key)
+	var pa []string
+	err := v1.UnmarshalKey("objects.prefix", &pa)
+	if err != nil {
+		log.Println(err)
 	}
 
-	log.Printf("%s:%s object count: %d\n", objs["bucket"], objs["prefix"], len(oa))
-	bar := progressbar.Default(int64(len(oa)))
-	for item := range oa {
-		_, err := PipeLoad(v1, mc, objs["bucket"], oa[item], spql["endpoint"])
-		if err != nil {
-			log.Println(err)
+	fmt.Println(pa)
+
+	for p := range pa {
+		oa := []string{}
+
+		// NEW
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+		objectCh := mc.ListObjects(ctx, objs["bucket"],
+			minio.ListObjectsOptions{Prefix: pa[p], Recursive: true})
+
+		for object := range objectCh {
+			if object.Err != nil {
+				fmt.Println(object.Err)
+				return object.Err
+			}
+			// fmt.Println(object)
+			oa = append(oa, object.Key)
 		}
-		bar.Add(1)
-		// log.Println(string(s)) // get "s" on pipeload and send to a log file
+
+		log.Printf("%s:%s object count: %d\n", objs["bucket"], pa[p], len(oa))
+		bar := progressbar.Default(int64(len(oa)))
+		for item := range oa {
+			_, err := PipeLoad(v1, mc, objs["bucket"], oa[item], spql["endpoint"])
+			if err != nil {
+				log.Println(err)
+			}
+			bar.Add(1)
+			// log.Println(string(s)) // get "s" on pipeload and send to a log file
+		}
 	}
 
 	return nil
