@@ -29,7 +29,7 @@ func SingleBuild(v1 *viper.Viper, mc *minio.Client) error {
 	tp := tkcfg["outprefix"]
 
 	// collect the objects...
-	oa, err := prune.ObjectList(v1, mc)
+	oa, err := prune.ObjectList(v1, mc, "broken, need loop like prune")
 	if err != nil {
 		log.Println(err)
 		return err

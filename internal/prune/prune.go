@@ -20,57 +20,64 @@ import (
 
 //Snip removes graphs in TS not in object store
 func Snip(v1 *viper.Viper, mc *minio.Client) error {
-	// do the object assembly
-	oa, err := ObjectList(v1, mc)
+
+	var pa []string
+	err := v1.UnmarshalKey("objects.prefix", &pa)
 	if err != nil {
 		log.Println(err)
-		return err
 	}
 
-	// collect all the graphs from triple store
-	ga, err := graphList(v1, mc)
-	if err != nil {
-		log.Println(err)
-		return err
-	}
+	fmt.Println(pa)
 
-	objs := v1.GetStringMapString("objects")
-	// convert the object names to the URN pattern used in the graph
-	for x := range oa {
-		s := strings.TrimSuffix(oa[x], ".rdf")
-		s2 := strings.Replace(s, "/", ":", -1)
-		g := fmt.Sprintf("urn:%s:%s", objs["bucket"], s2)
-		oa[x] = g
-	}
+	for p := range pa {
 
-	//compare lists..   anything IN graph not in objects list should be removed
-	d := difference(ga, oa) // return array of items in ga that are NOT in oa
+		// do the object assembly
+		oa, err := ObjectList(v1, mc, pa[p])
+		if err != nil {
+			log.Println(err)
+			return err
+		}
 
-	//for n := 0; n <= 1; n++ {
-	//fmt.Println(oa[n])
-	//fmt.Println(ga[n])
-	//}
+		// collect all the graphs from triple store
+		ga, err := graphList(v1, mc, pa[p])
+		if err != nil {
+			log.Println(err)
+			return err
+		}
 
-	fmt.Printf("Graph items: %d  Object items: %d  difference: %d\n", len(ga), len(oa), len(d))
+		objs := v1.GetStringMapString("objects")
+		// convert the object names to the URN pattern used in the graph
+		for x := range oa {
+			s := strings.TrimSuffix(oa[x], ".rdf")
+			s2 := strings.Replace(s, "/", ":", -1)
+			g := fmt.Sprintf("urn:%s:%s", objs["bucket"], s2)
+			oa[x] = g
+		}
 
-	// For each in d will delete that graph
-	bar := progressbar.Default(int64(len(d)))
-	for x := range d {
-		log.Printf("Remove graph: %s\n", d[x])
-		flows.Drop(v1, d[x])
-		bar.Add(1)
+		//compare lists..   anything IN graph not in objects list should be removed
+		d := difference(ga, oa) // return array of items in ga that are NOT in oa
+
+		fmt.Printf("Graph items: %d  Object items: %d  difference: %d\n", len(ga), len(oa), len(d))
+
+		// For each in d will delete that graph
+		bar := progressbar.Default(int64(len(d)))
+		for x := range d {
+			log.Printf("Remove graph: %s\n", d[x])
+			flows.Drop(v1, d[x])
+			bar.Add(1)
+		}
 	}
 
 	return nil
 }
 
-func graphList(v1 *viper.Viper, mc *minio.Client) ([]string, error) {
+func graphList(v1 *viper.Viper, mc *minio.Client, prefix string) ([]string, error) {
 	ga := []string{}
 
 	spql := v1.GetStringMapString("sparql")
 	objs := v1.GetStringMapString("objects")
 
-	gp := fmt.Sprintf("urn:%s:%s", objs["bucket"], strings.Replace(objs["prefix"], "/", ":", -1))
+	gp := fmt.Sprintf("urn:%s:%s", objs["bucket"], strings.Replace(prefix, "/", ":", -1))
 	fmt.Printf("Pattern: %s\n", gp)
 
 	d := fmt.Sprintf("SELECT DISTINCT ?g WHERE {GRAPH ?g {?s ?p ?o} FILTER regex(str(?g), \"^%s\")}", gp)
@@ -112,7 +119,7 @@ func graphList(v1 *viper.Viper, mc *minio.Client) ([]string, error) {
 	return ga, nil
 }
 
-func ObjectList(v1 *viper.Viper, mc *minio.Client) ([]string, error) {
+func ObjectList(v1 *viper.Viper, mc *minio.Client, prefix string) ([]string, error) {
 	objs := v1.GetStringMapString("objects")
 
 	// My go func controller vars
@@ -129,7 +136,7 @@ func ObjectList(v1 *viper.Viper, mc *minio.Client) ([]string, error) {
 
 	// for object := range mc.ListObjectsV2(objs["bucket"], objs["prefix"], isRecursive, doneCh) {
 	for object := range mc.ListObjects(context.Background(), objs["bucket"],
-		minio.ListObjectsOptions{Prefix: objs["prefix"], Recursive: true}) {
+		minio.ListObjectsOptions{Prefix: prefix, Recursive: true}) {
 
 		wg.Add(1)
 		go func(object minio.ObjectInfo) {
@@ -141,7 +148,7 @@ func ObjectList(v1 *viper.Viper, mc *minio.Client) ([]string, error) {
 		wg.Wait()
 	}
 
-	log.Printf("%s:%s object count: %d\n", objs["bucket"], objs["prefix"], len(oa))
+	log.Printf("%s:%s object count: %d\n", objs["bucket"], prefix, len(oa))
 
 	return oa, nil
 }
