@@ -8,7 +8,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/UFOKN/nabu/internal/jsonld"
+	"github.com/UFOKN/nabu/internal/graph"
 	"github.com/UFOKN/nabu/internal/objects"
 
 	"github.com/minio/minio-go/v7"
@@ -111,7 +111,7 @@ func frameloader(v1 *viper.Viper, mc *minio.Client, oa []string) ([]byte, error)
 }
 
 func httpsDesc(b []byte) (string, error) {
-	proc, options := jsonld.JLDProc()
+	proc, options := graph.JLDProc()
 
 	// "@type":       "Dataset",
 	frame := map[string]interface{}{
@@ -153,7 +153,7 @@ func httpsDesc(b []byte) (string, error) {
 }
 
 func httpDesc(b []byte) (string, error) {
-	proc, options := jsonld.JLDProc()
+	proc, options := graph.JLDProc()
 
 	// "@type":       "Dataset",
 	frame := map[string]interface{}{

@@ -27,8 +27,6 @@ func Snip(v1 *viper.Viper, mc *minio.Client) error {
 		log.Println(err)
 	}
 
-	fmt.Println(pa)
-
 	for p := range pa {
 
 		// do the object assembly
@@ -39,6 +37,8 @@ func Snip(v1 *viper.Viper, mc *minio.Client) error {
 		}
 
 		// collect all the graphs from triple store
+		// TODO resolve issue with Graph and graphList vs graphListStatements
+		//ga, err := graphListStatements(v1, mc, pa[p])
 		ga, err := graphList(v1, mc, pa[p])
 		if err != nil {
 			log.Println(err)
@@ -81,6 +81,9 @@ func graphList(v1 *viper.Viper, mc *minio.Client, prefix string) ([]string, erro
 	fmt.Printf("Pattern: %s\n", gp)
 
 	d := fmt.Sprintf("SELECT DISTINCT ?g WHERE {GRAPH ?g {?s ?p ?o} FILTER regex(str(?g), \"^%s\")}", gp)
+
+	//fmt.Println(d)
+
 	pab := []byte("")
 	params := url.Values{}
 	params.Add("query", d)
@@ -89,6 +92,9 @@ func graphList(v1 *viper.Viper, mc *minio.Client, prefix string) ([]string, erro
 		log.Println(err)
 	}
 	req.Header.Set("Accept", "application/sparql-results+json")
+
+	//req.Header.Add("Accept", "application/sparql-update")
+	//req.Header.Add("Accept", "application/n-quads")
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
@@ -106,7 +112,59 @@ func graphList(v1 *viper.Viper, mc *minio.Client, prefix string) ([]string, erro
 		log.Println("response Body:", string(body))
 	}
 
-	// log.Println("response Body:", string(body))
+	//fmt.Println("response Body:", string(body))
+
+	result := gjson.Get(string(body), "results.bindings.#.g.value")
+	result.ForEach(func(key, value gjson.Result) bool {
+		ga = append(ga, value.String())
+		return true // keep iterating
+	})
+
+	// ask := Ask{}
+	// json.Unmarshal(body, &ask)
+	return ga, nil
+}
+
+func graphListStatements(v1 *viper.Viper, mc *minio.Client, prefix string) ([]string, error) {
+	ga := []string{}
+
+	spql := v1.GetStringMapString("sparql")
+	objs := v1.GetStringMapString("objects")
+
+	gp := fmt.Sprintf("urn:%s:%s", objs["bucket"], strings.Replace(prefix, "/", ":", -1))
+	fmt.Printf("Pattern: %s\n", gp)
+
+	d := fmt.Sprintf("SELECT DISTINCT ?g WHERE {GRAPH ?g {?s ?p ?o} FILTER regex(str(?g), \"^%s\")}", gp)
+
+	fmt.Println(d)
+
+	pab := []byte("")
+	params := url.Values{}
+	params.Add("query", d)
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s?%s", spql["endpoint"], params.Encode()), bytes.NewBuffer(pab))
+	if err != nil {
+		log.Println(err)
+	}
+	// req.Header.Add("Accept", "application/sparql-update")
+	req.Header.Add("Accept", "application/n-quads")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Println(err)
+	}
+
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Println(strings.Repeat("ERROR", 5))
+		log.Println("response Status:", resp.Status)
+		log.Println("response Headers:", resp.Header)
+		log.Println("response Body:", string(body))
+	}
+
+	// fmt.Println("response Body:", string(body))
 
 	result := gjson.Get(string(body), "results.bindings.#.g.value")
 	result.ForEach(func(key, value gjson.Result) bool {

@@ -30,6 +30,9 @@ func BlazeUpdateNQ(s []byte, sue string) ([]byte, error) {
 	//su := "INSERT DATA {" + s + "}"
 
 	req, err := http.NewRequest("POST", sue, bytes.NewBuffer(pab))
+	if err != nil {
+		log.Println(err)
+	}
 	req.Header.Set("Content-Type", "application/sparql-update")
 
 	client := &http.Client{}
@@ -63,6 +66,9 @@ func BlazeUpateNT(s []byte, sue string) ([]byte, error) {
 	//su := "INSERT DATA {" + s + "}"
 
 	req, err := http.NewRequest("POST", sue, bytes.NewBuffer(pab))
+	if err != nil {
+		log.Println(err)
+	}
 	req.Header.Set("Content-Type", "application/sparql-update")
 
 	client := &http.Client{}

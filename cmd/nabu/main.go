@@ -25,7 +25,7 @@ func init() {
 
 	flag.StringVar(&viperVal, "cfg", "config.json", "Configuration file")
 	flag.StringVar(&prefixVal, "prefix", "", "Prefix to override config file setting")
-	flag.StringVar(&modeVal, "mode", "", "What Nabu should do: tika, txtai, object, prefix")
+	flag.StringVar(&modeVal, "mode", "", "What Nabu should do: tika, txtai, object, prefix, prune")
 }
 
 func main() {
@@ -70,7 +70,7 @@ func main() {
 	// Select run mod
 
 	if !isFlagPassed("mode") {
-		fmt.Println("Mode must be set -mode one of prune, tika, txtai, object, prefix")
+		fmt.Println("Mode must be set -mode one of: prune, tika, txtai, object, prefix")
 		os.Exit(0)
 	}
 
@@ -114,26 +114,6 @@ func main() {
 		log.Println(string(s))
 
 	}
-
-	// txtai testing
-	// err = semsearch.ObjectAssembly(v1, mc)
-	// if err != nil {
-	// 	log.Println(err)
-	// }
-
-	// Graph load an entire prefix
-	//err = flows.ObjectAssembly(v1, mc)
-	//if err != nil {
-	//log.Println(err)
-	//}
-
-	//Graph Load a single object
-	// spql := v1.GetStringMapString("sparql")
-	// s, err := flows.PipeLoad(v1, mc, spql["endpoint"])
-	// if err != nil {
-	// 	log.Println(err)
-	// }
-	// log.Println(string(s))
 }
 
 func readConfig(filename string, defaults map[string]interface{}) (*viper.Viper, error) {

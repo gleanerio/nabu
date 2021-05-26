@@ -8,6 +8,7 @@ import (
 	"log"
 	"mime"
 	"net/http"
+	"net/url"
 	"path/filepath"
 	"strings"
 
@@ -122,6 +123,7 @@ func PipeLoad(v1 *viper.Viper, mc *minio.Client, bucket, object, spql string) ([
 	if err != nil {
 		log.Println(err)
 	}
+
 	// If the graph is a quad already..   we need to make it triples
 	// so we can load with "our" context.
 	// Note: We are tossing source prov for out prov
@@ -141,6 +143,7 @@ func PipeLoad(v1 *viper.Viper, mc *minio.Client, bucket, object, spql string) ([
 	if err != nil {
 		log.Println(err)
 	}
+	// req.Header.Set("Content-Type", "application/sparql-results+xml")
 	req.Header.Set("Content-Type", "application/sparql-update")
 
 	client := &http.Client{}
@@ -151,6 +154,7 @@ func PipeLoad(v1 *viper.Viper, mc *minio.Client, bucket, object, spql string) ([
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
+	// log.Println(string(body))
 	if err != nil {
 		log.Println("response Body:", string(body))
 		log.Println("response Status:", resp.Status)
@@ -162,10 +166,9 @@ func PipeLoad(v1 *viper.Viper, mc *minio.Client, bucket, object, spql string) ([
 
 // Drop removes a graph
 func Drop(v1 *viper.Viper, g string) ([]byte, error) {
-
 	spql := v1.GetStringMapString("sparql")
-
-	d := fmt.Sprintf("DELETE { GRAPH <%s> {?s ?p ?o} } WHERE {GRAPH <%s> {?s ?p ?o}}", g, g)
+	// d := fmt.Sprintf("DELETE { GRAPH <%s> {?s ?p ?o} } WHERE {GRAPH <%s> {?s ?p ?o}}", g, g)
+	d := fmt.Sprintf("DROP GRAPH <%s> ", g)
 
 	pab := []byte(d)
 
@@ -173,6 +176,46 @@ func Drop(v1 *viper.Viper, g string) ([]byte, error) {
 	if err != nil {
 		log.Println(err)
 	}
+	req.Header.Set("Content-Type", "application/sparql-update")
+	// req.Header.Set("Content-Type", "application/sparql-results+xml")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Println(err)
+	}
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Println("response Body:", string(body))
+		log.Println("response Status:", resp.Status)
+		log.Println("response Headers:", resp.Header)
+	}
+
+	// log.Println(string(body))
+
+	return body, err
+}
+
+// DropGet removes a graph
+func DropGet(v1 *viper.Viper, g string) ([]byte, error) {
+	spql := v1.GetStringMapString("sparql")
+	// d := fmt.Sprintf("DELETE { GRAPH <%s> {?s ?p ?o} } WHERE {GRAPH <%s> {?s ?p ?o}}", g, g)
+	d := fmt.Sprintf("DROP GRAPH <%s> ", g)
+
+	log.Println(d)
+	pab := []byte("")
+	//	fmt.Println(spql["endpoint"])
+
+	// TODO try and GET with query set
+	params := url.Values{}
+	params.Add("query", d)
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s?%s", spql["endpoint"], params.Encode()), bytes.NewBuffer(pab))
+	if err != nil {
+		log.Println(err)
+	}
+	// req.Header.Set("Content-Type", "application/sparql-results+json")
 	req.Header.Set("Content-Type", "application/sparql-update")
 
 	client := &http.Client{}
@@ -188,6 +231,8 @@ func Drop(v1 *viper.Viper, g string) ([]byte, error) {
 		log.Println("response Status:", resp.Status)
 		log.Println("response Headers:", resp.Header)
 	}
+
+	log.Println(string(body))
 
 	return body, err
 }
