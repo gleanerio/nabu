@@ -31,8 +31,8 @@ func ObjectAssembly(v1 *viper.Viper, mc *minio.Client) error {
 	// wg := sync.WaitGroup{} // a wait group enables the main process a wait for goroutines to finish
 
 	// params for list objects calls
-	doneCh := make(chan struct{}) // , N) Create a done channel to control 'ListObjectsV2' go routine.
-	defer close(doneCh)           // Indicate to our routine to exit cleanly upon return.
+	// doneCh := make(chan struct{}) // , N) Create a done channel to control 'ListObjectsV2' go routine.
+	// defer close(doneCh)           // Indicate to our routine to exit cleanly upon return.
 
 	var pa []string
 	err := v1.UnmarshalKey("objects.prefix", &pa)
