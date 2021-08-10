@@ -1,14 +1,17 @@
 package flows
 
 import (
+	"bufio"
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"mime"
 	"net/http"
 	"net/url"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -56,7 +59,7 @@ func ObjectAssembly(v1 *viper.Viper, mc *minio.Client) error {
 				fmt.Println(object.Err)
 				return object.Err
 			}
-			// fmt.Println(object)
+			//fmt.Println(object.Key)
 			oa = append(oa, object.Key)
 		}
 
@@ -78,22 +81,32 @@ func ObjectAssembly(v1 *viper.Viper, mc *minio.Client) error {
 // PipeLoad reads from an object and loads directly into a triplestore
 func PipeLoad(v1 *viper.Viper, mc *minio.Client, bucket, object, spql string) ([]byte, error) {
 	// build our quad/graph from the object path
-
+	log.Printf("Loading %s \n", object)
 	s2c := strings.Replace(object, "/", ":", -1)
-	g := fmt.Sprintf("urn:%s:%s", bucket, strings.TrimSuffix(s2c, ".rdf"))
+
+	var g string
+	if strings.Contains(s2c, ".rdf") {
+		g = fmt.Sprintf("urn:%s:%s", bucket, strings.TrimSuffix(s2c, ".rdf"))
+	} else if strings.Contains(s2c, ".jsonld") {
+		g = fmt.Sprintf("urn:%s:%s", bucket, strings.TrimSuffix(s2c, ".jsonld"))
+	} else {
+		return nil, errors.New("Unable to generate graph URI")
+	}
+
+	log.Println(g)
 
 	// Turn checking off while testing other parts of Nabu
-	c, err := gexists(spql, g)
-	if err != nil {
-		log.Println(err)
-	}
-	if c {
-		return nil, nil // our graph is loaded already..
-	}
+	//c, err := gexists(spql, g)
+	//if err != nil {
+	//log.Println(err)
+	//}
+	//if c {
+	//return nil, nil // our graph is loaded already..
+	//}
 
 	b, _, err := objects.GetS3Bytes(mc, bucket, object)
 	if err != nil {
-		fmt.Printf("gets3Bytes %v\n", err)
+		log.Printf("gets3Bytes %v\n", err)
 	}
 
 	// check the object string
@@ -107,6 +120,7 @@ func PipeLoad(v1 *viper.Viper, mc *minio.Client, bucket, object, spql string) ([
 	nt := ""
 
 	if strings.Compare(mt, "application/ld+json") == 0 {
+		log.Println("Load JSON-LD file")
 		nt, err = graph.JSONLDToNQ(string(b))
 		if err != nil {
 			log.Printf("JSONLDToNQ err: %s", err)
@@ -128,7 +142,29 @@ func PipeLoad(v1 *viper.Viper, mc *minio.Client, bucket, object, spql string) ([
 	// so we can load with "our" context.
 	// Note: We are tossing source prov for out prov
 
-	// log.Printf("Graph loading as: %s\n", g)
+	log.Printf("Graph loading as: %s\n", g)
+
+	// TODO if array is too large, need to split it and load parts
+	// Let's decalre 10k lines the largest we want to send in.
+	log.Printf("Graph size: %d\n", len(nt))
+
+	scanner := bufio.NewScanner(strings.NewReader(nt))
+	lc := 0
+	sg := []string{}
+	for scanner.Scan() {
+		lc = lc + 1
+		sg = append(sg, scanner.Text())
+		if lc == 10000 { // use line count, since byte len might break inside a triple statement..   it's an OK proxy
+			log.Printf("Subgraph of %d", len(sg))
+			// TODO..  upload what we have here
+			sg = nil // clear the array
+			lc = 0   // reset the counter
+		}
+	}
+	if lc > 0 {
+		log.Printf("Subgraph of %d", len(sg))
+	}
+	os.Exit(0)
 
 	p := "INSERT DATA { "
 	pab := []byte(p)
@@ -152,6 +188,9 @@ func PipeLoad(v1 *viper.Viper, mc *minio.Client, bucket, object, spql string) ([
 		log.Println(err)
 	}
 	defer resp.Body.Close()
+
+	log.Println("response Status:", resp.Status)
+	log.Println("response Headers:", resp.Header)
 
 	body, err := ioutil.ReadAll(resp.Body)
 	// log.Println(string(body))
