@@ -11,7 +11,6 @@ import (
 	"mime"
 	"net/http"
 	"net/url"
-	"os"
 	"path/filepath"
 	"strings"
 
@@ -156,7 +155,7 @@ func PipeLoad(v1 *viper.Viper, mc *minio.Client, bucket, object, spql string) ([
 		sg = append(sg, scanner.Text())
 		if lc == 10000 { // use line count, since byte len might break inside a triple statement..   it's an OK proxy
 			log.Printf("Subgraph of %d", len(sg))
-			// TODO..  upload what we have here
+			// TODO..  upload what we have here, modify the call code to upload these sections
 			sg = nil // clear the array
 			lc = 0   // reset the counter
 		}
@@ -164,7 +163,6 @@ func PipeLoad(v1 *viper.Viper, mc *minio.Client, bucket, object, spql string) ([
 	if lc > 0 {
 		log.Printf("Subgraph of %d", len(sg))
 	}
-	os.Exit(0)
 
 	p := "INSERT DATA { "
 	pab := []byte(p)
