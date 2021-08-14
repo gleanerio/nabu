@@ -88,8 +88,10 @@ func PipeLoad(v1 *viper.Viper, mc *minio.Client, bucket, object, spql string) ([
 		g = fmt.Sprintf("urn:%s:%s", bucket, strings.TrimSuffix(s2c, ".rdf"))
 	} else if strings.Contains(s2c, ".jsonld") {
 		g = fmt.Sprintf("urn:%s:%s", bucket, strings.TrimSuffix(s2c, ".jsonld"))
+	} else if strings.Contains(s2c, ".nq") {
+		g = fmt.Sprintf("urn:%s:%s", bucket, strings.TrimSuffix(s2c, ".nq"))
 	} else {
-		return nil, errors.New("Unable to generate graph URI")
+		return nil, errors.New("unable to generate graph URI")
 	}
 
 	log.Println(g)
@@ -119,7 +121,7 @@ func PipeLoad(v1 *viper.Viper, mc *minio.Client, bucket, object, spql string) ([
 	nt := ""
 
 	if strings.Compare(mt, "application/ld+json") == 0 {
-		log.Println("Load JSON-LD file")
+		log.Println("Convert JSON-LD file to nq")
 		nt, err = graph.JSONLDToNQ(string(b))
 		if err != nil {
 			log.Printf("JSONLDToNQ err: %s", err)
@@ -144,7 +146,7 @@ func PipeLoad(v1 *viper.Viper, mc *minio.Client, bucket, object, spql string) ([
 	log.Printf("Graph loading as: %s\n", g)
 
 	// TODO if array is too large, need to split it and load parts
-	// Let's decalre 10k lines the largest we want to send in.
+	// Let's declare 10k lines the largest we want to send in.
 	log.Printf("Graph size: %d\n", len(nt))
 
 	scanner := bufio.NewScanner(strings.NewReader(nt))
@@ -154,15 +156,25 @@ func PipeLoad(v1 *viper.Viper, mc *minio.Client, bucket, object, spql string) ([
 		lc = lc + 1
 		sg = append(sg, scanner.Text())
 		if lc == 10000 { // use line count, since byte len might break inside a triple statement..   it's an OK proxy
-			log.Printf("Subgraph of %d", len(sg))
+			log.Printf("Subgraph of %d lines", len(sg))
 			// TODO..  upload what we have here, modify the call code to upload these sections
+			_, err = Insert(g, strings.Join(sg, "\n"), spql) // convert []string to strings joined with new line to form a RDF NT set
+			if err != nil {
+				log.Printf("Insert err: %s", err)
+			}
 			sg = nil // clear the array
 			lc = 0   // reset the counter
 		}
 	}
 	if lc > 0 {
-		log.Printf("Subgraph of %d", len(sg))
+		log.Printf("Subgraph (out of scanner) of %d lines", len(sg))
+		_, err = Insert(g, strings.Join(sg, "\n"), spql) // convert []string to strings joined with new line to form a RDF NT set
 	}
+
+	return []byte("remove me"), err
+}
+
+func Insert(g, nt, spql string) (string, error) {
 
 	p := "INSERT DATA { "
 	pab := []byte(p)
@@ -198,7 +210,7 @@ func PipeLoad(v1 *viper.Viper, mc *minio.Client, bucket, object, spql string) ([
 		log.Println("response Headers:", resp.Header)
 	}
 
-	return []byte(resp.Status), err
+	return resp.Status, err
 }
 
 // Drop removes a graph
