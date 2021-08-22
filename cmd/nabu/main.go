@@ -90,6 +90,16 @@ func main() {
 			log.Println(err)
 		}
 
+	case "object":
+		fmt.Println("Load graph object to triplestore")
+		spql := v1.GetStringMapString("sparql")
+		s, err := flows.PipeLoad(v1, mc, "bucket", "object", spql["endpoint"])
+		if err != nil {
+			log.Println(err)
+		}
+		log.Println(string(s))
+		}
+
 	case "tika":
 		fmt.Println("Tika extract text from objects")
 		err = tika.SingleBuild(v1, mc)
@@ -104,16 +114,6 @@ func main() {
 			log.Println(err)
 		}
 
-	case "object":
-		fmt.Println("Load graph object to triplestore")
-		spql := v1.GetStringMapString("sparql")
-		s, err := flows.PipeLoad(v1, mc, "bucket", "object", spql["endpoint"])
-		if err != nil {
-			log.Println(err)
-		}
-		log.Println(string(s))
-
-	}
 }
 
 func readConfig(filename string, defaults map[string]interface{}) (*viper.Viper, error) {
