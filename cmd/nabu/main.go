@@ -98,7 +98,6 @@ func main() {
 			log.Println(err)
 		}
 		log.Println(string(s))
-		}
 
 	case "tika":
 		fmt.Println("Tika extract text from objects")
@@ -113,6 +112,8 @@ func main() {
 		if err != nil {
 			log.Println(err)
 		}
+
+    }
 
 }
 
