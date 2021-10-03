@@ -2,7 +2,6 @@ package flows
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/UFOKN/nabu/internal/graph"
 	"github.com/UFOKN/nabu/internal/objects"
@@ -12,6 +11,7 @@ import (
 	"github.com/minio/minio-go/v7"
 )
 
+// TODO  review and ensure this is not used and then remove.  This functionality is better done in something like Nabu or a groups own approach
 // LoadGraph attempts to load data from srcbkt into graph.  It assumes the data is stored in JSON-LD
 func DEPRECATEDLoadGraph(mc *minio.Client, srcbckt string, sue string) error {
 	var err error
@@ -52,13 +52,7 @@ func DEPRECATEDLoadGraph(mc *minio.Client, srcbckt string, sue string) error {
 		}
 		// fmt.Println(nq)
 
-		// BUG FIX HACK
-		// I typo-ed schema.org/AdditonalType as schema.org/AdditionType
-		// here I could do a simple find and replace to resolve that.   Then remove
-		// later when I hide my shame (it's been fixed in VaultWalker FYI)
-		nqhacked := strings.ReplaceAll(nq, "additionType", "additionalType")
-
-		_, err = triplestore.BlazeUpdateNQ([]byte(nqhacked), sue) // TODO  add the above graph string to target a database on jena
+		_, err = triplestore.BlazeUpdateNQ([]byte(nq), sue) // TODO  add the above graph string to target a database on jena
 		// _, err = triplestore.JenaUpdateNQ([]byte(nqhacked), sue) // TODO  add the above graph string to target a database on jena
 
 		if err != nil {
