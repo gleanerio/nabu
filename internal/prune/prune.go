@@ -20,6 +20,7 @@ import (
 
 //Snip removes graphs in TS not in object store
 func Snip(v1 *viper.Viper, mc *minio.Client) error {
+<<<<<<< HEAD
 
 	var pa []string
 	err := v1.UnmarshalKey("objects.prefix", &pa)
@@ -110,6 +111,54 @@ func graphList(v1 *viper.Viper, mc *minio.Client, prefix string) ([]string, erro
 		log.Println("response Status:", resp.Status)
 		log.Println("response Headers:", resp.Header)
 		log.Println("response Body:", string(body))
+=======
+
+	var pa []string
+	err := v1.UnmarshalKey("objects.prefix", &pa)
+	if err != nil {
+		log.Println(err)
+	}
+
+	fmt.Println(pa)
+
+	for p := range pa {
+
+		// do the object assembly
+		oa, err := ObjectList(v1, mc, pa[p])
+		if err != nil {
+			log.Println(err)
+			return err
+		}
+
+		// collect all the graphs from triple store
+		ga, err := graphList(v1, mc, pa[p])
+		if err != nil {
+			log.Println(err)
+			return err
+		}
+
+		objs := v1.GetStringMapString("objects")
+		// convert the object names to the URN pattern used in the graph
+		for x := range oa {
+			s := strings.TrimSuffix(oa[x], ".rdf")
+			s2 := strings.Replace(s, "/", ":", -1)
+			g := fmt.Sprintf("urn:%s:%s", objs["bucket"], s2)
+			oa[x] = g
+		}
+
+		//compare lists..   anything IN graph not in objects list should be removed
+		d := difference(ga, oa) // return array of items in ga that are NOT in oa
+
+		fmt.Printf("Graph items: %d  Object items: %d  difference: %d\n", len(ga), len(oa), len(d))
+
+		// For each in d will delete that graph
+		bar := progressbar.Default(int64(len(d)))
+		for x := range d {
+			log.Printf("Remove graph: %s\n", d[x])
+			flows.Drop(v1, d[x])
+			bar.Add(1)
+		}
+>>>>>>> multiprefix
 	}
 
 	//fmt.Println("response Body:", string(body))
@@ -125,7 +174,11 @@ func graphList(v1 *viper.Viper, mc *minio.Client, prefix string) ([]string, erro
 	return ga, nil
 }
 
+<<<<<<< HEAD
 func graphListStatements(v1 *viper.Viper, mc *minio.Client, prefix string) ([]string, error) {
+=======
+func graphList(v1 *viper.Viper, mc *minio.Client, prefix string) ([]string, error) {
+>>>>>>> multiprefix
 	ga := []string{}
 
 	spql := v1.GetStringMapString("sparql")
