@@ -79,8 +79,7 @@ func main() {
 	case "prefix":
 		fmt.Println("Load graphs from prefix to triplestore")
 		err = flows.ObjectAssembly(v1, mc)
-<<<<<<< HEAD
-=======
+
 		if err != nil {
 			log.Println(err)
 		}
@@ -95,14 +94,7 @@ func main() {
 	case "tika":
 		fmt.Println("Tika extract text from objects")
 		err = tika.SingleBuild(v1, mc)
->>>>>>> multiprefix
-		if err != nil {
-			log.Println(err)
-		}
 
-	case "prune":
-		fmt.Println("Prune graphs in triplestore not in object store")
-		err = prune.Snip(v1, mc)
 		if err != nil {
 			log.Println(err)
 		}
@@ -116,14 +108,6 @@ func main() {
 		}
 		log.Println(string(s))
 
-<<<<<<< HEAD
-	case "tika":
-		fmt.Println("Tika extract text from objects")
-		err = tika.SingleBuild(v1, mc)
-		if err != nil {
-			log.Println(err)
-		}
-
 	case "txtai":
 		fmt.Println("Index descriptions to txtai")
 		err = semsearch.ObjectAssembly(v1, mc)
@@ -131,10 +115,7 @@ func main() {
 			log.Println(err)
 		}
 
-    }
-=======
 	}
->>>>>>> multiprefix
 
 }
 

@@ -2,10 +2,10 @@ package triplestore
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/UFOKN/nabu/internal/graph"
 	"github.com/UFOKN/nabu/internal/objects"
-
 	"github.com/gosuri/uiprogress"
 	"github.com/minio/minio-go/v7"
 )
@@ -51,7 +51,6 @@ func DEPRECATEDLoadGraph(mc *minio.Client, srcbckt string, sue string) error {
 		}
 		// fmt.Println(nq)
 
-<<<<<<< HEAD:internal/triplestore/loadGraph.go
 		// BUG FIX HACK
 		// I typo-ed schema.org/AdditonalType as schema.org/AdditionType
 		// here I could do a simple find and replace to resolve that.   Then remove
@@ -59,9 +58,7 @@ func DEPRECATEDLoadGraph(mc *minio.Client, srcbckt string, sue string) error {
 		nqhacked := strings.ReplaceAll(nq, "additionType", "additionalType")
 
 		_, err = BlazeUpdateNQ([]byte(nqhacked), sue) // TODO  add the above graph string to target a database on jena
-=======
-		_, err = triplestore.BlazeUpdateNQ([]byte(nq), sue) // TODO  add the above graph string to target a database on jena
->>>>>>> multiprefix:internal/flows/loadGraph.go
+
 		// _, err = triplestore.JenaUpdateNQ([]byte(nqhacked), sue) // TODO  add the above graph string to target a database on jena
 
 		if err != nil {
