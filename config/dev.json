@@ -4,14 +4,14 @@
   },
   "objects": {
       "bucket": "gleaner",
-      "prefix": "milled/lipdverse",
+      "prefix": ["orgs", "summoned/obps", "prov/obps", "summoned/aquadocs", "prov/aquadocs", "milled/marinetraining", "prov/marinetraining", "milled/obis", "prov/obis", "milled/oceanexperts", "prov/oceanexperts"],
       "domain": "us-east-1"
   },
   "minio": {
     "address": "192.168.86.45",
     "port": "32771",
-    "accesskey": "AKIAIOSFODNN7EXAMPLE",
-    "secretkey": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+    "accesskey": "akey",
+    "secretkey": "skey"
   },
   "txtaipkg": {
     "endpoint": "http://0.0.0.0:8000"
