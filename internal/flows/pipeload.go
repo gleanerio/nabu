@@ -41,29 +41,6 @@ func ObjectAssembly(v1 *viper.Viper, mc *minio.Client) error {
 	if err != nil {
 		log.Println(err)
 	}
-<<<<<<< HEAD
-
-	fmt.Println(pa)
-
-	for p := range pa {
-		oa := []string{}
-
-		// NEW
-		ctx, cancel := context.WithCancel(context.Background())
-		defer cancel()
-		objectCh := mc.ListObjects(ctx, objs["bucket"],
-			minio.ListObjectsOptions{Prefix: pa[p], Recursive: true})
-
-		for object := range objectCh {
-			if object.Err != nil {
-				fmt.Println(object.Err)
-				return object.Err
-			}
-			//fmt.Println(object.Key)
-			oa = append(oa, object.Key)
-		}
-
-=======
 
 	fmt.Println(pa)
 
@@ -85,7 +62,6 @@ func ObjectAssembly(v1 *viper.Viper, mc *minio.Client) error {
 			oa = append(oa, object.Key)
 		}
 
->>>>>>> multiprefix
 		log.Printf("%s:%s object count: %d\n", objs["bucket"], pa[p], len(oa))
 		bar := progressbar.Default(int64(len(oa)))
 		for item := range oa {
