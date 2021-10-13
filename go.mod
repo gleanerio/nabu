@@ -9,7 +9,7 @@ require (
 	github.com/gosuri/uiprogress v0.0.1
 	github.com/knakk/rdf v0.0.0-20190304171630-8521bf4c5042
 	github.com/minio/minio-go v6.0.14+incompatible
-	github.com/minio/minio-go/v7 v7.0.10 // indirect
+	github.com/minio/minio-go/v7 v7.0.10
 	github.com/neuml/txtai.go v1.0.0
 	github.com/piprate/json-gold v0.3.0
 	github.com/schollz/progressbar v1.0.0
