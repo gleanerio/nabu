@@ -11,12 +11,12 @@ jobs:
     strategy:
       matrix:
         # build and publish in parallel: linux/amd64
-  #      goos: [linux, windows, darwin]
-   #     goarch: [amd64,arm]
-        goos: [linux]
+        goos: [linux, windows, darwin]
         goarch: [amd64]
+#        goos: [linux]
+#        goarch: [amd64]
         exclude:
-          - goarch: "386"
+          - goarch: ["386",arm]
             goos: darwin
     steps:
       - uses: actions/checkout@v2
