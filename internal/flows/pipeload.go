@@ -73,6 +73,7 @@ func PipeLoad(v1 *viper.Viper, mc *minio.Client, bucket, object, spql string) ([
 	log.Printf("Loading %s \n", object)
 	s2c := strings.Replace(object, "/", ":", -1)
 
+	// build the URN for the graph context string we use
 	var g string
 	if strings.Contains(s2c, ".rdf") {
 		g = fmt.Sprintf("urn:%s:%s", bucket, strings.TrimSuffix(s2c, ".rdf"))
@@ -103,10 +104,11 @@ func PipeLoad(v1 *viper.Viper, mc *minio.Client, bucket, object, spql string) ([
 
 	// TODO, use the mimetype or suffix in general to select the path to load    or overload from the config file?
 	// check the object string
-	// log.Println(mt) // application/ld+json
 	mt := mime.TypeByExtension(filepath.Ext(object))
+	log.Printf("Object: %s reads as mimetype: %s", object, mt) // application/ld+json
 	nt := ""
 
+	// if strings.Contains(object, ".jsonld") { // TODO explore why this hack is needed and the mimetype for JSON-LD is not returned
 	if strings.Compare(mt, "application/ld+json") == 0 {
 		log.Println("Convert JSON-LD file to nq")
 		nt, err = graph.JSONLDToNQ(string(b))

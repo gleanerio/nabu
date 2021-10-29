@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"mime"
 	"os"
 
 	"github.com/UFOKN/nabu/internal/flows"
@@ -22,6 +23,8 @@ var prefixVal, viperVal, modeVal string
 // example source s3://noaa-nwm-retro-v2.0-pds/full_physics/2017/201708010001.CHRTOUT_DOMAIN1.comp
 func init() {
 	log.SetFlags(log.Lshortfile)
+
+	mime.AddExtensionType(".jsonld", "application/ld+json")
 
 	flag.StringVar(&viperVal, "cfg", "config.json", "Configuration file")
 	flag.StringVar(&prefixVal, "prefix", "", "Prefix to override config file setting")
