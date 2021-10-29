@@ -2,3 +2,4 @@ cmd/nabu/nabu
 **/secret/
 secret/**
 logs/**
+/cmd/nabu/nabu
