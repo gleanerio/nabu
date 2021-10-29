@@ -21,15 +21,6 @@ type Entry struct {
 	Jld        string
 }
 
-// Set up minio and initialize client
-// func MinioConnectionOLDDLETEME(ep, ak, sk string, ssl bool) *minio.Client {
-// 	minioClient, err := minio.New(ep, ak, sk, ssl)
-// 	if err != nil {
-// 		log.Fatalln(err)
-// 	}
-// 	return minioClient
-// }
-
 // MinioConnection Set up minio and initialize client
 func MinioConnection(v1 *viper.Viper) *minio.Client {
 	mcfg := v1.GetStringMapString("minio")
@@ -38,15 +29,13 @@ func MinioConnection(v1 *viper.Viper) *minio.Client {
 	accessKeyID := mcfg["accesskey"]
 	secretAccessKey := mcfg["secretkey"]
 	useSSL, err := strconv.ParseBool(fmt.Sprintf("%s", mcfg["useSSL"]))
-	// if err != nil {
-	// 	// return nil, err
-	// 	log.Println(err)
-	// }
+	if err != nil {
+		log.Println(err)
+		// return nil, err
+	}
 
 	// minioClient, err := minio.New(endpoint, accessKeyID, secretAccessKey, true)
-	minioClient, err := minio.New(endpoint,
-		&minio.Options{Creds: credentials.NewStaticV4(accessKeyID, secretAccessKey, ""),
-			Secure: useSSL})
+	minioClient, err := minio.New(endpoint, &minio.Options{Creds: credentials.NewStaticV4(accessKeyID, secretAccessKey, ""), Secure: useSSL})
 	if err != nil {
 		log.Fatalln(err)
 	}
