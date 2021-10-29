@@ -1,4 +1,3 @@
-cmd/nabu/nabu
 **/secret/
 secret/**
 logs/**

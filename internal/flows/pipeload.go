@@ -27,15 +27,6 @@ func ObjectAssembly(v1 *viper.Viper, mc *minio.Client) error {
 	objs := v1.GetStringMapString("objects")
 	spql := v1.GetStringMapString("sparql")
 
-	// My go func controller vars
-	semaphoreChan := make(chan struct{}, 1) // a blocking channel to keep concurrency under control (1 == single thread)
-	defer close(semaphoreChan)
-	// wg := sync.WaitGroup{} // a wait group enables the main process a wait for goroutines to finish
-
-	// params for list objects calls
-	// doneCh := make(chan struct{}) // , N) Create a done channel to control 'ListObjectsV2' go routine.
-	// defer close(doneCh)           // Indicate to our routine to exit cleanly upon return.
-
 	var pa []string
 	err := v1.UnmarshalKey("objects.prefix", &pa)
 	if err != nil {
@@ -50,8 +41,7 @@ func ObjectAssembly(v1 *viper.Viper, mc *minio.Client) error {
 		// NEW
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
-		objectCh := mc.ListObjects(ctx, objs["bucket"],
-			minio.ListObjectsOptions{Prefix: pa[p], Recursive: true})
+		objectCh := mc.ListObjects(ctx, objs["bucket"], minio.ListObjectsOptions{Prefix: pa[p], Recursive: true})
 
 		for object := range objectCh {
 			if object.Err != nil {
@@ -74,7 +64,7 @@ func ObjectAssembly(v1 *viper.Viper, mc *minio.Client) error {
 		}
 	}
 
-	return nil
+	return err
 }
 
 // PipeLoad reads from an object and loads directly into a triplestore
@@ -96,6 +86,7 @@ func PipeLoad(v1 *viper.Viper, mc *minio.Client, bucket, object, spql string) ([
 
 	log.Println(g)
 
+	// TODO WARNING this needs to be addressed
 	// Turn checking off while testing other parts of Nabu
 	//c, err := gexists(spql, g)
 	//if err != nil {
@@ -110,13 +101,9 @@ func PipeLoad(v1 *viper.Viper, mc *minio.Client, bucket, object, spql string) ([
 		log.Printf("gets3Bytes %v\n", err)
 	}
 
+	// TODO, use the mimetype or suffix in general to select the path to load    or overload from the config file?
 	// check the object string
-
 	// log.Println(mt) // application/ld+json
-
-	// TODO, use the mimetype or suffix in general to select the
-	// path to load    or overload from the config file?
-
 	mt := mime.TypeByExtension(filepath.Ext(object))
 	nt := ""
 
@@ -285,28 +272,3 @@ func DropGet(v1 *viper.Viper, g string) ([]byte, error) {
 
 	return body, err
 }
-
-// OLD
-// for object := range mc.ListObjects(context.Background(), objs["bucket"],
-// 	minio.ListObjectsOptions{Prefix: objs["prefix"], Recursive: true}) {
-
-// 	wg.Add(1)
-// 	go func(object minio.ObjectInfo) {
-// 		// TEMP HACK for UFOKN
-// 		// if objs["objectsuffix"] != "" {
-// 		// 	if strings.HasSuffix(object.Key, objs["objectsuffix"]) {
-// 		// 		// log.Println(object.Key)
-// 		// 		oa = append(oa, object.Key) // WARNING  append is not always thread safe..   wg of 1 till I address this
-// 		// 	}
-// 		// } else {
-// 		// log.Println(object.Key)
-
-// 		oa = append(oa, object.Key) // WARNING  append is not always thread safe..   wg of 1 till I address this
-// 		// }
-
-// 		wg.Done() // tell the wait group that we be done
-// 		// log.Printf("Doc: %s error: %v ", name, err) // why print the status??
-// 		<-semaphoreChan
-// 	}(object)
-// 	wg.Wait()
-// }
