@@ -3,9 +3,9 @@ package config
 import "github.com/spf13/viper"
 
 var nabuTemplate = map[string]interface{}{
-	"minio":   "",
-	"sparql":  "",
-	"objects": "",
+	"minio":   MinioTemplate,
+	"sparql":  sparqlTemplate,
+	"objects": ObjectTemplate,
 }
 
 func ReadNabuConfig(filename string, cfgPath string) (*viper.Viper, error) {
