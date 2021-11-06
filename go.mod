@@ -1,4 +1,4 @@
-module github.com/UFOKN/nabu
+module github.com/gleanerio/nabu
 
 go 1.15
 
