@@ -8,8 +8,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/UFOKN/nabu/internal/graph"
-	"github.com/UFOKN/nabu/internal/objects"
+	"github.com/gleanerio/nabu/internal/graph"
+	"github.com/gleanerio/nabu/internal/objects"
 
 	"github.com/minio/minio-go/v7"
 	"github.com/neuml/txtai.go"

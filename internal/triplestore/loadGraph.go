@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/UFOKN/nabu/internal/graph"
-	"github.com/UFOKN/nabu/internal/objects"
+	"github.com/gleanerio/nabu/internal/graph"
+	"github.com/gleanerio/nabu/internal/objects"
 	"github.com/gosuri/uiprogress"
 	"github.com/minio/minio-go/v7"
 )

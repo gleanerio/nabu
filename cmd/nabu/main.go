@@ -7,11 +7,11 @@ import (
 	"mime"
 	"os"
 
-	"github.com/UFOKN/nabu/internal/flows"
-	"github.com/UFOKN/nabu/internal/objects"
-	"github.com/UFOKN/nabu/internal/prune"
-	"github.com/UFOKN/nabu/internal/semsearch"
-	"github.com/UFOKN/nabu/internal/tika"
+	"github.com/gleanerio/nabu/internal/flows"
+	"github.com/gleanerio/nabu/internal/objects"
+	"github.com/gleanerio/nabu/internal/prune"
+	"github.com/gleanerio/nabu/internal/semsearch"
+	"github.com/gleanerio/nabu/internal/tika"
 
 	//	"../../internal/semsearch"
 

@@ -11,7 +11,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/UFOKN/nabu/internal/flows"
+	"github.com/gleanerio/nabu/internal/flows"
 	"github.com/minio/minio-go/v7"
 	"github.com/schollz/progressbar/v3"
 	"github.com/spf13/viper"
