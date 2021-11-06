@@ -13,16 +13,21 @@ type Objects struct {
 }
 
 var ObjectTemplate = map[string]interface{}{
-	"objects": map[string]string{
+	"objects": map[string]interface{}{
 		"bucket":    "gleaner",
 		"domain":    "us-east-1",
 		"endpoint":  "http://localhost/blazegraph/namespace/nabu/sparql",
-		"prefix":    "",
-		"prefixoff": "",
+		"prefix":    map[string][]string{},
+		"prefixoff": map[string][]string{},
 	},
 }
 
-func ReadS3Config(viperSubtree *viper.Viper) (Objects, error) {
+func GetObjectsConfig(viperConfig *viper.Viper) (Objects, error) {
+	sub := viperConfig.Sub("objects")
+	return ReadObjectsConfig(sub)
+}
+
+func ReadObjectsConfig(viperSubtree *viper.Viper) (Objects, error) {
 	var objects Objects
 	for key, value := range sparqlTemplate {
 		viperSubtree.SetDefault(key, value)

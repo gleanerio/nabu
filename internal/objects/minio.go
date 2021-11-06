@@ -5,12 +5,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
-	"strconv"
-
+	"github.com/gleanerio/nabu/run/config"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/spf13/viper"
+	"log"
 )
 
 type Entry struct {
@@ -22,28 +21,34 @@ type Entry struct {
 }
 
 // MinioConnection Set up minio and initialize client
-func MinioConnection(v1 *viper.Viper) *minio.Client {
-	mcfg := v1.GetStringMapString("minio")
+func MinioConnection(v1 *viper.Viper) (*minio.Client, error) {
+	//mcfg := v1.GetStringMapString("minio")
 
-	endpoint := fmt.Sprintf("%s:%s", mcfg["address"], mcfg["port"])
-	accessKeyID := mcfg["accesskey"]
-	secretAccessKey := mcfg["secretkey"]
-	useSSL, err := strconv.ParseBool(fmt.Sprintf("%s", mcfg["useSSL"]))
+	mcfg, err := config.GetMinioConfig(v1)
 	if err != nil {
 		log.Println(err)
-		// return nil, err
+		return nil, err
 	}
+	//endpoint := fmt.Sprintf("%s:%s", mcfg["address"], mcfg["port"])
+	//accessKeyID := mcfg["accesskey"]
+	//secretAccessKey := mcfg["secretkey"]
+	//useSSL, err := strconv.ParseBool(fmt.Sprintf("%s", mcfg["useSSL"]))
+	endpoint := fmt.Sprintf("%s:%d", mcfg.Address, mcfg.Port)
+	accessKeyID := mcfg.Accesskey
+	secretAccessKey := mcfg.Secretkey
+	useSSL := mcfg.Ssl
 
 	// minioClient, err := minio.New(endpoint, accessKeyID, secretAccessKey, true)
 	minioClient, err := minio.New(endpoint, &minio.Options{Creds: credentials.NewStaticV4(accessKeyID, secretAccessKey, ""), Secure: useSSL})
 	if err != nil {
 		log.Fatalln(err)
+		return nil, err
 	}
 	// minioClient.SetCustomTransport(&http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}})
 	// if err != nil {
 	// 	log.Fatalln(err)
 	// }
-	return minioClient
+	return minioClient, err
 }
 
 // GetS3Bytes simply pulls the byes of an object from the store
