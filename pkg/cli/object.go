@@ -9,24 +9,28 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var bucket, objectVal string
+//var bucket, objectVal string
 
 // checkCmd represents the check command
 var objectCmd = &cobra.Command{
-	Use:   "objectVal",
-	Short: "nabu objectVal command",
-	Long:  `Load graph objectVal to triplestore`,
+	Use:   "object",
+	Short: "nabu object command",
+	Long:  `Load graph object to triplestore`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("objectVal called")
-		if objectVal == "" {
+		fmt.Println("object called")
+		if len(args) > 0 {
+			objectVal := args[0]
 
-		}
-		err := pkg.Object(viperVal, mc, bucketVal, objectVal)
-		if err != nil {
-			log.Fatal(err)
+			err := pkg.Object(viperVal, mc, bucketVal, objectVal)
+			if err != nil {
+				log.Fatal(err)
+				os.Exit(1)
+			}
+			os.Exit(0)
+		} else {
+			log.Fatal("must have an argument nabu object objectId")
 			os.Exit(1)
 		}
-		os.Exit(0)
 
 	},
 }
@@ -36,7 +40,7 @@ func init() {
 
 	// Here you will define your flags and configuration settings.
 	// bucketVal is available at top level
-	objectCmd.Flags().StringVar(&objectVal, "objectVal", "", "objectVal to load")
+	//objectCmd.Flags().StringVar(&objectVal, "object", "", "object to load")
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
 	// checkCmd.PersistentFlags().String("foo", "", "A help for foo")
