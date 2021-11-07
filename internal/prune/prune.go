@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"github.com/gleanerio/nabu/run/config"
+	"github.com/gleanerio/nabu/pkg/config"
 	"io/ioutil"
 	"log"
 	"net/http"

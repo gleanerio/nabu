@@ -1,10 +1,10 @@
-package run
+package pkg
 
 import (
 	"fmt"
 	"github.com/gleanerio/nabu/internal/flows"
 	"github.com/gleanerio/nabu/internal/objects"
-	"github.com/gleanerio/nabu/run/config"
+	"github.com/gleanerio/nabu/pkg/config"
 	"github.com/spf13/viper"
 	"log"
 

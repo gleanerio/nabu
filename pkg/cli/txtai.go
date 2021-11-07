@@ -2,9 +2,7 @@ package cli
 
 import (
 	"fmt"
-
-	"github.com/gleanerio/nabu/run"
-
+	"github.com/gleanerio/nabu/pkg"
 	"log"
 	"os"
 
@@ -12,13 +10,13 @@ import (
 )
 
 // checkCmd represents the check command
-var PrefixCmd = &cobra.Command{
-	Use:   "prefix ",
-	Short: "nabu prefix command",
-	Long:  `Load graphs from prefix to triplestore`,
+var txtaiCmd = &cobra.Command{
+	Use:   "txtai",
+	Short: "nabu txtai command",
+	Long:  `(not implemented)This will read the configs/{cfgPath}/gleaner file, and try to connect to the minio server`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("prefix called")
-		err := run.Prefix(viperVal, mc)
+		fmt.Println("txtai called")
+		err := pkg.Txtai(viperVal, mc)
 		if err != nil {
 			log.Fatal(err)
 			os.Exit(1)
@@ -28,7 +26,7 @@ var PrefixCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(PrefixCmd)
+	rootCmd.AddCommand(txtaiCmd)
 
 	// Here you will define your flags and configuration settings.
 
