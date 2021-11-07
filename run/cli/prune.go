@@ -42,7 +42,7 @@ func init() {
 }
 
 func Prune(v1 *viper.Viper, mc *minio.Client) error {
-	fmt.Println("Prune graphs in triplestore not in object store")
+	fmt.Println("Prune graphs in triplestore not in objectVal store")
 	err := prune.Snip(v1, mc)
 	if err != nil {
 		log.Println(err)
