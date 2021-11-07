@@ -2,7 +2,7 @@ package cli
 
 import (
 	"github.com/gleanerio/nabu/internal/objects"
-	"github.com/gleanerio/nabu/run/config"
+	"github.com/gleanerio/nabu/pkg/config"
 	"github.com/minio/minio-go/v7"
 	"github.com/spf13/cobra"
 	"log"

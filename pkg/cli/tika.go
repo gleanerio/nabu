@@ -2,7 +2,7 @@ package cli
 
 import (
 	"fmt"
-	"github.com/gleanerio/nabu/run"
+	"github.com/gleanerio/nabu/pkg"
 	"log"
 	"os"
 
@@ -10,13 +10,13 @@ import (
 )
 
 // checkCmd represents the check command
-var txtaiCmd = &cobra.Command{
-	Use:   "txtai",
-	Short: "nabu txtai command",
+var tikaCmd = &cobra.Command{
+	Use:   "tika",
+	Short: "nabu tika command",
 	Long:  `(not implemented)This will read the configs/{cfgPath}/gleaner file, and try to connect to the minio server`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("txtai called")
-		err := run.Txtai(viperVal, mc)
+		fmt.Println("tike called")
+		err := pkg.Tika(viperVal, mc)
 		if err != nil {
 			log.Fatal(err)
 			os.Exit(1)
@@ -26,7 +26,7 @@ var txtaiCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(txtaiCmd)
+	rootCmd.AddCommand(tikaCmd)
 
 	// Here you will define your flags and configuration settings.
 

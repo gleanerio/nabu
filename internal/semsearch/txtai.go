@@ -3,7 +3,7 @@ package semsearch
 import (
 	"context"
 	"encoding/json"
-	"github.com/gleanerio/nabu/run/config"
+	"github.com/gleanerio/nabu/pkg/config"
 	"log"
 	"path"
 	"strings"
