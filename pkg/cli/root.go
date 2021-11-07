@@ -8,12 +8,13 @@ import (
 	"log"
 	"mime"
 	"os"
+	"path"
 	"path/filepath"
 
 	"github.com/spf13/viper"
 )
 
-var cfgFile, cfgName, cfgPath string
+var cfgFile, cfgName, cfgPath, nabuConfName string
 var minioVal, portVal, accessVal, secretVal, bucketVal string
 var sslVal bool
 var viperVal *viper.Viper
@@ -55,6 +56,7 @@ func init() {
 
 	rootCmd.PersistentFlags().StringVar(&cfgPath, "cfgPath", "configs", "base location for config files (default is configs/)")
 	rootCmd.PersistentFlags().StringVar(&cfgName, "cfgName", "local", "config file (default is local so configs/local)")
+	rootCmd.PersistentFlags().StringVar(&nabuConfName, "nabuConfName", "nabu", "config file (default is local so configs/local)")
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "cfg", "", "compatibility/overload: full path to config file (default location gleaner in configs/local)")
 
 	// minio env variables
@@ -91,7 +93,7 @@ func initConfig() {
 		//viperVal.AddConfigPath(path.Join(cfgPath, cfgName))
 		//viperVal.SetConfigType("yaml")
 		//viperVal.SetConfigName("nabu")
-		viperVal, err = config.ReadNabuConfig(cfgName, cfgPath)
+		viperVal, err = config.ReadNabuConfig(nabuConfName, path.Join(cfgPath, cfgName))
 		if err != nil {
 			log.Fatal("cannot read config %s", err)
 		}

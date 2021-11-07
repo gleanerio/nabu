@@ -18,34 +18,57 @@ the primary standards we need implemented include
 Config file example
 
 ```
-{
-  "sparql": {
-    "endpoint": "https://graph.example.org/sparql"
-  },
-  "objects": {
-      "bucket": "sourcebucket",
-      "prefix": ["bucket, "prefixes", "to", "load"],
-      "domain": "us-east-1"
-  },
-  "minio": {
-    "address": "objectstore.example.org",
-    "port": "",
-    "accesskey": "worldsbestaccesskey",
-    "secretkey": "worldsbestsecretkey"
-  }
-}
+minio:
+  address: localhost
+  port: 9000
+  ssl: false
+  accesskey: akey
+  secretkey: skey
+  bucket: gleaner2
+objects:
+  bucket: gleaner2
+  domain: us-east-1
+  prefix:
+  - milled/iris
+  - prov/iris
+  - org
+  prefixoff:
+  - summoned/aquadocs
+  - prov/aquadocs
+  - milled/opentopography
+  - prov/opentopography
+sparql:
+  endpoint: http://localhost/blazegraph/namespace/earthcube/sparql
+  authenticate: false
+  username: ""
+  password: ""
+txtaipkg:
+  endpoint: http://0.0.0.0:8000
 ```
 
 Commands are like the following:
+### Help
+nabu --help
 
 ### Prefix: load all objects in the bucket/prefixes
 
 The mode "prefix" in Nabu is used for loading a S3 object prefix 
 path into a triplestore
 ```
-nabu -cfg file -mode prefix
+nabu prefix --cfg file
 ```
-
+eg
+```
+nabu prefix --cfg ../gleaner/configs/nabu
+```
+and gleaner generated configuration: 
+```
+nabu prefix --cfgPath directory --cfgName name 
+```
+eg use generated
+```
+nabu prefix --cfgPath ../gleaner/configs --cfgName local 
+```
 ### Prune: load all objects in the bucket/prefixes
 
 The mode "prune" in Nabu is to sync a prefix to the graph (remove graphs no longer in use, add new ones)
@@ -53,7 +76,36 @@ The mode "prune" in Nabu is to sync a prefix to the graph (remove graphs no long
 Note that updated graphs become new objects, since the object name is the SHA256 of the object
 
 ```
-nabu -cfg file -mode prune
+nabu prune --cfg file 
+```
+and gleaner generated configuration:
+```
+nabu prefix --cfgPath directory --cfgName name 
+```
+eg use generated
+```
+nabu prefix --cfgPath ../gleaner/configs --cfgName local 
+```
+
+### Object: load one object in the bucket/prefixes
+
+The mode "object" in Nabu is used for loading a S3 object 
+path into a triplestore
+```
+nabu object --cfg file objectId
+```
+eg
+```
+nabu object --cfg ../gleaner/configs/nabu milled/opentopography/ffa0df033bb3a8fc9f600c80df3501fe1a2dbe93.rdf
+```
+
+and gleaner generated configuration:
+```
+nabu object --cfgPath directory --cfgName name  objectId
+```
+eg use generated
+```
+nabu object --cfgPath ../gleaner/configs --cfgName local milled/opentopography/ffa0df033bb3a8fc9f600c80df3501fe1a2dbe93.rdf
 ```
 
 ## TODO
