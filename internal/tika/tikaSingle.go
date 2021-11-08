@@ -13,8 +13,8 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/UFOKN/nabu/internal/objects"
-	"github.com/UFOKN/nabu/internal/prune"
+	"github.com/gleanerio/nabu/internal/objects"
+	"github.com/gleanerio/nabu/internal/prune"
 	"github.com/schollz/progressbar/v3"
 
 	"github.com/minio/minio-go/v7"

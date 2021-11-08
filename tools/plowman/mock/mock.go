@@ -9,7 +9,7 @@ import (
 
 	//	"log"
 
-	"github.com/earthcubearchitecture-project418/gleaner/internal/common"
+	"github.com/gleanerio/gleaner/internal/common"
 	minio "github.com/minio/minio-go"
 )
 

@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/gleanerio/nabu/pkg/config"
 	"io/ioutil"
 	"log"
 	"mime"
@@ -14,8 +15,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/UFOKN/nabu/internal/graph"
-	"github.com/UFOKN/nabu/internal/objects"
+	"github.com/gleanerio/nabu/internal/graph"
+	"github.com/gleanerio/nabu/internal/objects"
 	"github.com/schollz/progressbar/v3"
 
 	"github.com/minio/minio-go/v7"
@@ -24,25 +25,19 @@ import (
 
 // ObjectAssembly collects the objects from a bucket to load
 func ObjectAssembly(v1 *viper.Viper, mc *minio.Client) error {
-	objs := v1.GetStringMapString("objects")
-	spql := v1.GetStringMapString("sparql")
+	//objs := v1.GetStringMapString("objects")
+	//spql := v1.GetStringMapString("sparql")
+	objs, err := config.GetObjectsConfig(v1)
+	spql, err := config.GetSparqlConfig(v1)
 
-	// My go func controller vars
-	semaphoreChan := make(chan struct{}, 1) // a blocking channel to keep concurrency under control (1 == single thread)
-	defer close(semaphoreChan)
-	// wg := sync.WaitGroup{} // a wait group enables the main process a wait for goroutines to finish
+	var pa = objs.Prefix
+	//var pa []string
+	//err := v1.UnmarshalKey("objects.prefix", &pa)
+	//if err != nil {
+	//	log.Println(err)
+	//}
 
-	// params for list objects calls
-	// doneCh := make(chan struct{}) // , N) Create a done channel to control 'ListObjectsV2' go routine.
-	// defer close(doneCh)           // Indicate to our routine to exit cleanly upon return.
-
-	var pa []string
-	err := v1.UnmarshalKey("objects.prefix", &pa)
-	if err != nil {
-		log.Println(err)
-	}
-
-	fmt.Println(pa)
+	log.Println(pa)
 
 	for p := range pa {
 		oa := []string{}
@@ -50,22 +45,22 @@ func ObjectAssembly(v1 *viper.Viper, mc *minio.Client) error {
 		// NEW
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
-		objectCh := mc.ListObjects(ctx, objs["bucket"],
-			minio.ListObjectsOptions{Prefix: pa[p], Recursive: true})
+		bucketName, _ := config.GetBucketName(v1)
+		objectCh := mc.ListObjects(ctx, bucketName, minio.ListObjectsOptions{Prefix: pa[p], Recursive: true})
 
 		for object := range objectCh {
 			if object.Err != nil {
-				fmt.Println(object.Err)
+				log.Println(object.Err)
 				return object.Err
 			}
 			// fmt.Println(object)
 			oa = append(oa, object.Key)
 		}
 
-		log.Printf("%s:%s object count: %d\n", objs["bucket"], pa[p], len(oa))
+		log.Printf("%s:%s object count: %d\n", bucketName, pa[p], len(oa))
 		bar := progressbar.Default(int64(len(oa)))
 		for item := range oa {
-			_, err := PipeLoad(v1, mc, objs["bucket"], oa[item], spql["endpoint"])
+			_, err := PipeLoad(v1, mc, bucketName, oa[item], spql.Endpoint)
 			if err != nil {
 				log.Println(err)
 			}
@@ -74,7 +69,7 @@ func ObjectAssembly(v1 *viper.Viper, mc *minio.Client) error {
 		}
 	}
 
-	return nil
+	return err
 }
 
 // PipeLoad reads from an object and loads directly into a triplestore
@@ -83,6 +78,7 @@ func PipeLoad(v1 *viper.Viper, mc *minio.Client, bucket, object, spql string) ([
 	log.Printf("Loading %s \n", object)
 	s2c := strings.Replace(object, "/", ":", -1)
 
+	// build the URN for the graph context string we use
 	var g string
 	if strings.Contains(s2c, ".rdf") {
 		g = fmt.Sprintf("urn:%s:%s", bucket, strings.TrimSuffix(s2c, ".rdf"))
@@ -96,6 +92,7 @@ func PipeLoad(v1 *viper.Viper, mc *minio.Client, bucket, object, spql string) ([
 
 	log.Println(g)
 
+	// TODO WARNING this needs to be addressed
 	// Turn checking off while testing other parts of Nabu
 	//c, err := gexists(spql, g)
 	//if err != nil {
@@ -110,16 +107,13 @@ func PipeLoad(v1 *viper.Viper, mc *minio.Client, bucket, object, spql string) ([
 		log.Printf("gets3Bytes %v\n", err)
 	}
 
+	// TODO, use the mimetype or suffix in general to select the path to load    or overload from the config file?
 	// check the object string
-
-	// log.Println(mt) // application/ld+json
-
-	// TODO, use the mimetype or suffix in general to select the
-	// path to load    or overload from the config file?
-
 	mt := mime.TypeByExtension(filepath.Ext(object))
+	log.Printf("Object: %s reads as mimetype: %s", object, mt) // application/ld+json
 	nt := ""
 
+	// if strings.Contains(object, ".jsonld") { // TODO explore why this hack is needed and the mimetype for JSON-LD is not returned
 	if strings.Compare(mt, "application/ld+json") == 0 {
 		log.Println("Convert JSON-LD file to nq")
 		nt, err = graph.JSONLDToNQ(string(b))
@@ -215,13 +209,15 @@ func Insert(g, nt, spql string) (string, error) {
 
 // Drop removes a graph
 func Drop(v1 *viper.Viper, g string) ([]byte, error) {
-	spql := v1.GetStringMapString("sparql")
+	//spql := v1.GetStringMapString("sparql")
+	spql, _ := config.GetSparqlConfig(v1)
 	// d := fmt.Sprintf("DELETE { GRAPH <%s> {?s ?p ?o} } WHERE {GRAPH <%s> {?s ?p ?o}}", g, g)
 	d := fmt.Sprintf("DROP GRAPH <%s> ", g)
 
 	pab := []byte(d)
 
-	req, err := http.NewRequest("POST", spql["endpoint"], bytes.NewBuffer(pab))
+	//req, err := http.NewRequest("POST", spql["endpoint"], bytes.NewBuffer(pab))
+	req, err := http.NewRequest("POST", spql.Endpoint, bytes.NewBuffer(pab))
 	if err != nil {
 		log.Println(err)
 	}
@@ -249,7 +245,8 @@ func Drop(v1 *viper.Viper, g string) ([]byte, error) {
 
 // DropGet removes a graph
 func DropGet(v1 *viper.Viper, g string) ([]byte, error) {
-	spql := v1.GetStringMapString("sparql")
+	//spql := v1.GetStringMapString("sparql")
+	spql, _ := config.GetSparqlConfig(v1)
 	// d := fmt.Sprintf("DELETE { GRAPH <%s> {?s ?p ?o} } WHERE {GRAPH <%s> {?s ?p ?o}}", g, g)
 	d := fmt.Sprintf("DROP GRAPH <%s> ", g)
 
@@ -260,7 +257,8 @@ func DropGet(v1 *viper.Viper, g string) ([]byte, error) {
 	// TODO try and GET with query set
 	params := url.Values{}
 	params.Add("query", d)
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s?%s", spql["endpoint"], params.Encode()), bytes.NewBuffer(pab))
+	//req, err := http.NewRequest("GET", fmt.Sprintf("%s?%s", spql["endpoint"], params.Encode()), bytes.NewBuffer(pab))
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s?%s", spql.Endpoint, params.Encode()), bytes.NewBuffer(pab))
 	if err != nil {
 		log.Println(err)
 	}
@@ -285,28 +283,3 @@ func DropGet(v1 *viper.Viper, g string) ([]byte, error) {
 
 	return body, err
 }
-
-// OLD
-// for object := range mc.ListObjects(context.Background(), objs["bucket"],
-// 	minio.ListObjectsOptions{Prefix: objs["prefix"], Recursive: true}) {
-
-// 	wg.Add(1)
-// 	go func(object minio.ObjectInfo) {
-// 		// TEMP HACK for UFOKN
-// 		// if objs["objectsuffix"] != "" {
-// 		// 	if strings.HasSuffix(object.Key, objs["objectsuffix"]) {
-// 		// 		// log.Println(object.Key)
-// 		// 		oa = append(oa, object.Key) // WARNING  append is not always thread safe..   wg of 1 till I address this
-// 		// 	}
-// 		// } else {
-// 		// log.Println(object.Key)
-
-// 		oa = append(oa, object.Key) // WARNING  append is not always thread safe..   wg of 1 till I address this
-// 		// }
-
-// 		wg.Done() // tell the wait group that we be done
-// 		// log.Printf("Doc: %s error: %v ", name, err) // why print the status??
-// 		<-semaphoreChan
-// 	}(object)
-// 	wg.Wait()
-// }

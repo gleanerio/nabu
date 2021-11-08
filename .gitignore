@@ -2,3 +2,4 @@
 secret/**
 logs/**
 /cmd/nabu/nabu
+**/*.log
