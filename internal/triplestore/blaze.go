@@ -7,7 +7,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/UFOKN/nabu/internal/graph"
+	"github.com/gleanerio/nabu/internal/graph"
 )
 
 //BlazeUpdateNQ updates the blaze triple store

@@ -3,13 +3,14 @@ package semsearch
 import (
 	"context"
 	"encoding/json"
+	"github.com/gleanerio/nabu/pkg/config"
 	"log"
 	"path"
 	"strings"
 	"sync"
 
-	"github.com/UFOKN/nabu/internal/graph"
-	"github.com/UFOKN/nabu/internal/objects"
+	"github.com/gleanerio/nabu/internal/graph"
+	"github.com/gleanerio/nabu/internal/objects"
 
 	"github.com/minio/minio-go/v7"
 	"github.com/neuml/txtai.go"
@@ -23,8 +24,9 @@ type DataFrame struct {
 
 // ObjectAssembly collects the objects from a bucket to load
 func ObjectAssembly(v1 *viper.Viper, mc *minio.Client) error {
-	objs := v1.GetStringMapString("objects")
-
+	//objs := v1.GetStringMapString("objects")
+	objs, _ := config.GetObjectsConfig(v1)
+	bucketName, _ := config.GetBucketName(v1)
 	// My go func controller vars
 	semaphoreChan := make(chan struct{}, 1) // a blocking channel to keep concurrency under control (1 == single thread)
 	defer close(semaphoreChan)
@@ -37,18 +39,25 @@ func ObjectAssembly(v1 *viper.Viper, mc *minio.Client) error {
 
 	oa := []string{}
 	// for object := range mc.ListObjects(objs["bucket"], objs["prefix"], isRecursive, doneCh) {
-	for object := range mc.ListObjects(context.Background(), objs["bucket"],
-		minio.ListObjectsOptions{Prefix: objs["prefix"], Recursive: true}) {
-		wg.Add(1)
-		go func(object minio.ObjectInfo) {
-			// log.Println(object.Key)
-			oa = append(oa, object.Key)
-			wg.Done() // tell the wait group that we be done
-			// log.Printf("Doc: %s error: %v ", name, err) // why print the status??
-			<-semaphoreChan
-		}(object)
+	//for object := range mc.ListObjects(context.Background(), objs["bucket"],
+	//	minio.ListObjectsOptions{Prefix: objs["prefix"], Recursive: true}) {
+
+	// prefix is now a list
+	for p := range objs.Prefix {
+
+		for object := range mc.ListObjects(context.Background(), bucketName,
+			minio.ListObjectsOptions{Prefix: string(p), Recursive: true}) {
+			wg.Add(1)
+			go func(object minio.ObjectInfo) {
+				// log.Println(object.Key)
+				oa = append(oa, object.Key)
+				wg.Done() // tell the wait group that we be done
+				// log.Printf("Doc: %s error: %v ", name, err) // why print the status??
+				<-semaphoreChan
+			}(object)
+		}
+		wg.Wait()
 	}
-	wg.Wait()
 
 	//parseloader(v1, mc, oa)
 	frameloader(v1, mc, oa)
@@ -56,7 +65,9 @@ func ObjectAssembly(v1 *viper.Viper, mc *minio.Client) error {
 }
 
 func frameloader(v1 *viper.Viper, mc *minio.Client, oa []string) ([]byte, error) {
-	objs := v1.GetStringMapString("objects")
+	//objs := v1.GetStringMapString("objects")
+	//objs,_ := config.GetObjectsConfig(v1)
+	bucketName, _ := config.GetBucketName(v1)
 	t := v1.GetStringMapString("txtaipkg")
 
 	embeddings := txtai.Embeddings(t["endpoint"])
@@ -65,9 +76,11 @@ func frameloader(v1 *viper.Viper, mc *minio.Client, oa []string) ([]byte, error)
 		// s, err := loader(v1, mc, objs["bucket"], oa[item], spql["endpoint"])
 		jo := strings.Replace(oa[item], "milled", "summoned", 1)
 		jo2 := strings.Replace(jo, ".rdf", ".jsonld", 1)
-		b, _, err := objects.GetS3Bytes(mc, objs["bucket"], jo2)
+		//b, _, err := objects.GetS3Bytes(mc, objs["bucket"], jo2)
+		b, _, err := objects.GetS3Bytes(mc, bucketName, jo2)
 		if err != nil {
-			log.Printf("%s : %s \n", objs["bucket"], jo2)
+			//log.Printf("%s : %s \n", objs["bucket"], jo2)
+			log.Printf("%s : %s \n", bucketName, jo2)
 			log.Println(err)
 			continue
 		}
