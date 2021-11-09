@@ -10,14 +10,14 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/earthcubearchitecture-project418/gleaner/internal/millers/framing"
+	"github.com/gleanerio/gleaner/internal/millers/framing"
 	redis "gopkg.in/redis.v5"
 
 	"github.com/coyove/jsonbuilder"
 	minio "github.com/minio/minio-go"
 	geojson "github.com/paulmach/go.geojson"
 
-	"github.com/earthcubearchitecture-project418/gleaner/internal/common"
+	"github.com/gleanerio/gleaner/internal/common"
 )
 
 func ProcessBucketObjects(mc *minio.Client, bucketname string) {

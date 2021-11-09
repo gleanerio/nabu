@@ -12,13 +12,12 @@ import (
 	"github.com/piprate/json-gold/ld"
 )
 
+//NQtoNTCtx converts nquads to ntriples plus a context (graph) string
 func NQToNTCtx(inquads string) (string, string, error) {
 	// loop on tr and make a set of triples
 	ntr := []rdf.Triple{}
 	g := ""
 
-	// HACK, delete thie..  was used to add missing . from tika index output (that is fixed now)
-	// dec := rdf.NewQuadDecoder(strings.NewReader(fmt.Sprintf("%s .", inquads)), rdf.NQuads)
 	dec := rdf.NewQuadDecoder(strings.NewReader(inquads), rdf.NQuads)
 	tr, err := dec.DecodeAll()
 	if err != nil {
@@ -34,7 +33,13 @@ func NQToNTCtx(inquads string) (string, string, error) {
 	for i := range tr {
 		ntr = append(ntr, tr[i].Triple)
 	}
-	ctx := tr[0].Ctx // Assume context of first triple is context of all triples
+
+	// Assume context of first triple is context of all triples  (again, a bit of a hack,
+	// but likely valid as a single JSON-LD datagraph level).  This may be problematic for a "stitegraphs" where several
+	// datagraph are represented in a single large JSON-LD via some collection concept.  There it is possible someone might
+	// use the quad.  However, for most cases the quad is not important to us, it's local provenance, so we would still replace
+	// it with our provenance (context)
+	ctx := tr[0].Ctx
 	g = ctx.String()
 
 	// TODO output
@@ -55,6 +60,7 @@ func NQToNTCtx(inquads string) (string, string, error) {
 	return tb.String(), g, err
 }
 
+// JSONLDToNQ takes JSON-LD and convets to nqquads (or ntriples if no graph?)
 func JSONLDToNQ(jsonld string) (string, error) {
 	proc := ld.NewJsonLdProcessor()
 	options := ld.NewJsonLdOptions("")
@@ -80,6 +86,7 @@ func JSONLDToNQ(jsonld string) (string, error) {
 	return fmt.Sprintf("%v", triples), err
 }
 
+// NQToJSONLD takes nquads and converts to JSON-LD
 func NQToJSONLD(triples string) ([]byte, error) {
 	proc := ld.NewJsonLdProcessor()
 	options := ld.NewJsonLdOptions("")
@@ -96,40 +103,4 @@ func NQToJSONLD(triples string) ([]byte, error) {
 	b, err := json.MarshalIndent(doc, "", " ")
 
 	return b, err
-}
-
-// IILTriple builds a IRI, IRI, Literal triple
-func IILTriple(s, p, o, c string) (string, error) {
-	buf := bytes.NewBufferString("")
-
-	newctx, err := rdf.NewIRI(c) // this should be  c
-	if err != nil {
-		return buf.String(), err
-	}
-	ctx := rdf.Context(newctx)
-
-	sub, err := rdf.NewIRI(s)
-	if err != nil {
-		log.Println("Error building subject IRI for tika triple")
-		return buf.String(), err
-	}
-	pred, err := rdf.NewIRI(p)
-	if err != nil {
-		log.Println("Error building predicate IRI for tika triple")
-		return buf.String(), err
-	}
-	obj, err := rdf.NewLiteral(o)
-	if err != nil {
-		log.Println("Error building object literal for tika triple")
-		return buf.String(), err
-	}
-
-	t := rdf.Triple{Subj: sub, Pred: pred, Obj: obj}
-	q := rdf.Quad{t, ctx}
-
-	qs := q.Serialize(rdf.NQuads)
-	if s != "" && p != "" && o != "" {
-		fmt.Fprintf(buf, "%s", qs)
-	}
-	return buf.String(), err
 }
