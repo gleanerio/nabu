@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"github.com/gleanerio/nabu/pkg/config"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -11,7 +12,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/UFOKN/nabu/internal/flows"
+	"github.com/gleanerio/nabu/internal/flows"
 	"github.com/minio/minio-go/v7"
 	"github.com/schollz/progressbar/v3"
 	"github.com/spf13/viper"
@@ -22,10 +23,13 @@ import (
 func Snip(v1 *viper.Viper, mc *minio.Client) error {
 
 	var pa []string
-	err := v1.UnmarshalKey("objects.prefix", &pa)
+	//err := v1.UnmarshalKey("objects.prefix", &pa)
+	objs, err := config.GetObjectsConfig(v1)
+	bucketName, _ := config.GetBucketName(v1)
 	if err != nil {
 		log.Println(err)
 	}
+	pa = objs.Prefix
 
 	for p := range pa {
 
@@ -45,12 +49,12 @@ func Snip(v1 *viper.Viper, mc *minio.Client) error {
 			return err
 		}
 
-		objs := v1.GetStringMapString("objects")
+		//objs := v1.GetStringMapString("objects") // from above
 		// convert the object names to the URN pattern used in the graph
 		for x := range oa {
 			s := strings.TrimSuffix(oa[x], ".rdf")
 			s2 := strings.Replace(s, "/", ":", -1)
-			g := fmt.Sprintf("urn:%s:%s", objs["bucket"], s2)
+			g := fmt.Sprintf("urn:%s:%s", bucketName, s2)
 			oa[x] = g
 		}
 
@@ -74,10 +78,13 @@ func Snip(v1 *viper.Viper, mc *minio.Client) error {
 func graphList(v1 *viper.Viper, mc *minio.Client, prefix string) ([]string, error) {
 	ga := []string{}
 
-	spql := v1.GetStringMapString("sparql")
-	objs := v1.GetStringMapString("objects")
-
-	gp := fmt.Sprintf("urn:%s:%s", objs["bucket"], strings.Replace(prefix, "/", ":", -1))
+	//spql := v1.GetStringMapString("sparql")
+	//objs := v1.GetStringMapString("objects")
+	spql, _ := config.GetSparqlConfig(v1)
+	//objs,_ := config.GetObjectsConfig(v1)
+	bucketName, _ := config.GetBucketName(v1)
+	//gp := fmt.Sprintf("urn:%s:%s", objs["bucket"], strings.Replace(prefix, "/", ":", -1))
+	gp := fmt.Sprintf("urn:%s:%s", bucketName, strings.Replace(prefix, "/", ":", -1))
 	fmt.Printf("Pattern: %s\n", gp)
 
 	d := fmt.Sprintf("SELECT DISTINCT ?g WHERE {GRAPH ?g {?s ?p ?o} FILTER regex(str(?g), \"^%s\")}", gp)
@@ -87,7 +94,8 @@ func graphList(v1 *viper.Viper, mc *minio.Client, prefix string) ([]string, erro
 	pab := []byte("")
 	params := url.Values{}
 	params.Add("query", d)
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s?%s", spql["endpoint"], params.Encode()), bytes.NewBuffer(pab))
+	//req, err := http.NewRequest("GET", fmt.Sprintf("%s?%s", spql["endpoint"], params.Encode()), bytes.NewBuffer(pab))
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s?%s", spql.Endpoint, params.Encode()), bytes.NewBuffer(pab))
 	if err != nil {
 		log.Println(err)
 	}
@@ -130,10 +138,13 @@ func graphListStatements(v1 *viper.Viper, mc *minio.Client, prefix string) ([]st
 
 	ga := []string{}
 
-	spql := v1.GetStringMapString("sparql")
-	objs := v1.GetStringMapString("objects")
+	//spql := v1.GetStringMapString("sparql")
+	//objs := v1.GetStringMapString("objects")
+	spql, _ := config.GetSparqlConfig(v1)
+	//objs,_ := config.GetObjectsConfig(v1)
+	bucketName, _ := config.GetBucketName(v1)
 
-	gp := fmt.Sprintf("urn:%s:%s", objs["bucket"], strings.Replace(prefix, "/", ":", -1))
+	gp := fmt.Sprintf("urn:%s:%s", bucketName, strings.Replace(prefix, "/", ":", -1))
 	fmt.Printf("Pattern: %s\n", gp)
 
 	d := fmt.Sprintf("SELECT DISTINCT ?g WHERE {GRAPH ?g {?s ?p ?o} FILTER regex(str(?g), \"^%s\")}", gp)
@@ -143,7 +154,8 @@ func graphListStatements(v1 *viper.Viper, mc *minio.Client, prefix string) ([]st
 	pab := []byte("")
 	params := url.Values{}
 	params.Add("query", d)
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s?%s", spql["endpoint"], params.Encode()), bytes.NewBuffer(pab))
+	//req, err := http.NewRequest("GET", fmt.Sprintf("%s?%s", spql["endpoint"], params.Encode()), bytes.NewBuffer(pab))
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s?%s", spql.Endpoint, params.Encode()), bytes.NewBuffer(pab))
 	if err != nil {
 		log.Println(err)
 	}
@@ -180,8 +192,9 @@ func graphListStatements(v1 *viper.Viper, mc *minio.Client, prefix string) ([]st
 }
 
 func ObjectList(v1 *viper.Viper, mc *minio.Client, prefix string) ([]string, error) {
-	objs := v1.GetStringMapString("objects")
-
+	//objs := v1.GetStringMapString("objects")
+	//objs,_ := config.GetObjectsConfig(v1)
+	bucketName, _ := config.GetBucketName(v1)
 	// My go func controller vars
 	semaphoreChan := make(chan struct{}, 1) // a blocking channel to keep concurrency under control (1 == single thread)
 	defer close(semaphoreChan)
@@ -195,7 +208,8 @@ func ObjectList(v1 *viper.Viper, mc *minio.Client, prefix string) ([]string, err
 	oa := []string{}
 
 	// for object := range mc.ListObjectsV2(objs["bucket"], objs["prefix"], isRecursive, doneCh) {
-	for object := range mc.ListObjects(context.Background(), objs["bucket"],
+	//for object := range mc.ListObjects(context.Background(), objs["bucket"],
+	for object := range mc.ListObjects(context.Background(), bucketName,
 		minio.ListObjectsOptions{Prefix: prefix, Recursive: true}) {
 
 		wg.Add(1)
@@ -208,8 +222,8 @@ func ObjectList(v1 *viper.Viper, mc *minio.Client, prefix string) ([]string, err
 		wg.Wait()
 	}
 
-	log.Printf("%s:%s object count: %d\n", objs["bucket"], prefix, len(oa))
-
+	//log.Printf("%s:%s object count: %d\n", objs["bucket"], prefix, len(oa))
+	log.Printf("%s:%s object count: %d\n", bucketName, prefix, len(oa))
 	return oa, nil
 }
 

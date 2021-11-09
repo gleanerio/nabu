@@ -14,11 +14,12 @@ type ContextMapping struct {
 	File   string
 }
 
-// JLDProc build the JSON-LD processer and sets the options object
-// to use in framing, processing and all JSON-LD actions
 // TODO   we create this all the time..  stupidly..  Generate these pointers
 // and pass them around, don't keep making it over and over
 // Ref:  https://schema.org/docs/howwework.html and https://schema.org/docs/jsonldcontext.json
+
+// JLDProc builds the JSON-LD processor and sets the options object
+// for use in framing, processing and all JSON-LD actions
 func JLDProc() (*ld.JsonLdProcessor, *ld.JsonLdOptions) { // TODO make a booklean
 	proc := ld.NewJsonLdProcessor()
 	options := ld.NewJsonLdOptions("")
@@ -47,7 +48,8 @@ func JLDProc() (*ld.JsonLdProcessor, *ld.JsonLdOptions) { // TODO make a booklea
 	cdl.PreloadWithMapping(m)
 	options.DocumentLoader = cdl
 
-	// Set a default format..  let this be set later...
+	// TODO let this be set later via config
+	// Set to a default format..
 	options.Format = "application/nquads"
 
 	return proc, options
