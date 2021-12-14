@@ -10,8 +10,8 @@
   "minio": {
     "address": "192.168.86.45",
     "port": "32771",
-    "accesskey": "AKIAIOSFODNN7EXAMPLE",
-    "secretkey": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+    "accesskey": "",
+    "secretkey": "","
   },
   "txtaipkg": {
     "endpoint": "http://0.0.0.0:8000"
