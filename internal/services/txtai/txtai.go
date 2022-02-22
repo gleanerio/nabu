@@ -1,4 +1,4 @@
-package semsearch
+package txtai
 
 import (
 	"context"

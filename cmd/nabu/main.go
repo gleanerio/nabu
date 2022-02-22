@@ -1,8 +1,31 @@
 package main
 
-import "github.com/gleanerio/nabu/pkg/cli"
+import (
+	"github.com/gleanerio/nabu/pkg/cli"
+	"log"
+	"os"
+)
 
 func main() {
+
+	// log to custom file
+	LOG_FILE := "/tmp/myapp_log"
+	// open log file
+	logFile, err := os.OpenFile(LOG_FILE, os.O_APPEND|os.O_RDWR|os.O_CREATE, 0644)
+	if err != nil {
+		log.Panic(err)
+		return
+	}
+	defer logFile.Close()
+
+	// Set log out put and enjoy :)
+	log.SetOutput(logFile)
+
+	// optional: log date-time, filename, and line number
+	log.SetFlags(log.Lshortfile | log.LstdFlags)
+
+	log.Println("Logging to custom file")
+
 	cli.Execute()
 }
 
@@ -16,10 +39,10 @@ func main() {
 //	"github.com/gleanerio/nabu/internal/flows"
 //	"github.com/gleanerio/nabu/internal/objects"
 //	"github.com/gleanerio/nabu/internal/prune"
-//	"github.com/gleanerio/nabu/internal/semsearch"
+//	"github.com/gleanerio/nabu/internal/txtai"
 //	"github.com/gleanerio/nabu/internal/tika"
 //	"github.com/gleanerio/nabu/run/cli"
-//	//	"../../internal/semsearch"
+//	//	"../../internal/txtai"
 //
 //	"github.com/spf13/viper"
 //)
@@ -119,7 +142,7 @@ func main() {
 //
 //	case "txtai":
 //		fmt.Println("Index descriptions to txtai")
-//		err = semsearch.ObjectAssembly(v1, mc)
+//		err = txtai.ObjectAssembly(v1, mc)
 //		if err != nil {
 //			log.Println(err)
 //		}
