@@ -18,9 +18,7 @@ import (
 // prefix:  source prefix
 // mc:  minio client pointer
 func PipeCopyNG(name, bucket, prefix string, mc *minio.Client) error {
-	log.Println("Start pipe reader / writer sequence")
-
-	log.Printf("name: %s   bucket: %s  prefix: %s", name, bucket, prefix)
+	log.Printf("Pipecopy with name: %s   bucket: %s  prefix: %s", name, bucket, prefix)
 
 	pr, pw := io.Pipe()     // TeeReader of use?
 	lwg := sync.WaitGroup{} // work group for the pipe writes...
@@ -55,10 +53,6 @@ func PipeCopyNG(name, bucket, prefix string, mc *minio.Client) error {
 			if err != nil {
 				log.Println(err)
 			}
-
-			// Is this where I can skolemize?
-			// or do this as an "operation" on the object external to this
-			// or should gleaner do all this?
 
 			_, err = pw.Write(b.Bytes())
 			if err != nil {

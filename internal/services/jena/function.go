@@ -27,9 +27,7 @@ func docfunc(v1 *viper.Viper, mc *minio.Client, bucketName string, item string, 
 	// unless bulk loading, in which case it needs to be done prior to here and this should be skipped
 	// the "bulk" load function might be different too
 
-	// pulled fro the tika code which I need to review for examples
-	// of modularity and also to clean up based on this new approach too.
-	url := fmt.Sprintf("http://localhost:3030/testing/data?graph=urn:testing:testgraph")
+	url := fmt.Sprintf("http://localhost:3030/testing/data?graph=urn:testing:testgraph2")
 	req, err := http.NewRequest("PUT", url, bytes.NewReader(b))
 	//req.Header.Set("Accept", "application/n-quads")
 	req.Header.Set("Content-Type", "application/n-quads")

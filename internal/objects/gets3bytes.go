@@ -3,7 +3,6 @@ package objects
 import (
 	"bytes"
 	"context"
-	"errors"
 	"fmt"
 	"log"
 
@@ -42,12 +41,13 @@ func GetS3Bytes(mc *minio.Client, bucket, object string) ([]byte, string, error)
 
 	// fmt.Printf("%s %s %s \n", urlval, sha1val, resuri)
 
-	sz := oi.Size        // what type is this...
-	if sz > 1073741824 { // if bigger than 1 GB (which is very small) move on
-		return nil, "", errors.New("file above tika processing size threshhold")
-	}
+	// TODO  set an upper byte size  limit here and return error if the size is too big
+	// TODO  why was this done, return size too and let the calling function worry about it...????
+	//sz := oi.Size        // what type is this...
+	//if sz > 1073741824 { // if bigger than 1 GB (which is very small) move on
+	//	return nil, "", errors.New("gets3bytes says file above processing size threshold")
+	//}
 
-	// TODO..   set an upper byte size  limit here and return error if the size is too big
 	buf := new(bytes.Buffer)
 	_, err = buf.ReadFrom(fo)
 	if err != nil {
