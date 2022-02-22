@@ -3,7 +3,7 @@ package prune
 import (
 	"bytes"
 	"fmt"
-	"github.com/gleanerio/nabu/internal/flows"
+	"github.com/gleanerio/nabu/internal/sparqlapi"
 	"github.com/gleanerio/nabu/pkg/config"
 	"github.com/minio/minio-go/v7"
 	"github.com/schollz/progressbar/v3"
@@ -64,7 +64,7 @@ func Snip(v1 *viper.Viper, mc *minio.Client) error {
 		bar := progressbar.Default(int64(len(d)))
 		for x := range d {
 			log.Printf("Remove graph: %s\n", d[x])
-			flows.Drop(v1, d[x])
+			sparqlapi.Drop(v1, d[x])
 			bar.Add(1)
 		}
 	}

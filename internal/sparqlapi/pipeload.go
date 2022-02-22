@@ -1,4 +1,4 @@
-package flows
+package sparqlapi
 
 import (
 	"bufio"
@@ -94,7 +94,7 @@ func PipeLoad(v1 *viper.Viper, mc *minio.Client, bucket, object, spql string) ([
 
 	// TODO WARNING this needs to be addressed
 	// Turn checking off while testing other parts of Nabu
-	//c, err := gexists(spql, g)
+	//c, err := IsGraph(spql, g)
 	//if err != nil {
 	//log.Println(err)
 	//}

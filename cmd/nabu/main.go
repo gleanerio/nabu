@@ -36,7 +36,7 @@ func main() {
 //	"mime"
 //	"os"
 //
-//	"github.com/gleanerio/nabu/internal/flows"
+//	"github.com/gleanerio/nabu/internal/sparqlapi"
 //	"github.com/gleanerio/nabu/internal/objects"
 //	"github.com/gleanerio/nabu/internal/prune"
 //	"github.com/gleanerio/nabu/internal/txtai"
@@ -110,7 +110,7 @@ func main() {
 //
 //	case "prefix":
 //		//fmt.Println("Load graphs from prefix to triplestore")
-//		//err = flows.ObjectAssembly(v1, mc)
+//		//err = sparqlapi.ObjectAssembly(v1, mc)
 //		err = cli.Prefix(  v1, mc)
 //		if err != nil {
 //			log.Println(err)
@@ -134,7 +134,7 @@ func main() {
 //	case "object":
 //		fmt.Println("Load graph object to triplestore")
 //		spql := v1.GetStringMapString("sparql")
-//		s, err := flows.PipeLoad(v1, mc, "bucket", "object", spql["endpoint"])
+//		s, err := sparqlapi.PipeLoad(v1, mc, "bucket", "object", spql["endpoint"])
 //		if err != nil {
 //			log.Println(err)
 //		}

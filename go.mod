@@ -28,6 +28,7 @@ require (
 	github.com/piprate/json-gold v0.4.0
 	github.com/prometheus/client_golang v0.9.3 // indirect
 	github.com/protolambda/gocyto v0.0.1 // indirect
+	github.com/rs/xid v1.2.1 // indirect
 	github.com/schollz/progressbar v1.0.0
 	github.com/schollz/progressbar/v3 v3.8.3
 	github.com/soheilhy/cmux v0.1.4 // indirect
