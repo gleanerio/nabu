@@ -31,6 +31,7 @@ require (
 	github.com/rs/xid v1.2.1 // indirect
 	github.com/schollz/progressbar v1.0.0
 	github.com/schollz/progressbar/v3 v3.8.3
+	github.com/sirupsen/logrus v1.8.1 // indirect
 	github.com/soheilhy/cmux v0.1.4 // indirect
 	github.com/spf13/cobra v1.2.1
 	github.com/spf13/viper v1.9.0
