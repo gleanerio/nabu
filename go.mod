@@ -19,6 +19,7 @@ require (
 	github.com/grpc-ecosystem/go-grpc-middleware v1.0.0 // indirect
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0 // indirect
 	github.com/jonboulle/clockwork v0.1.0 // indirect
+	github.com/kisielk/godepgraph v0.0.0-20190626013829-57a7e4a651a9 // indirect
 	github.com/knakk/rdf v0.0.0-20190304171630-8521bf4c5042
 	github.com/minio/minio-go v6.0.14+incompatible
 	github.com/minio/minio-go/v7 v7.0.15
