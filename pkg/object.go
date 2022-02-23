@@ -5,8 +5,8 @@ import (
 	"github.com/gleanerio/nabu/internal/objects"
 	"github.com/gleanerio/nabu/internal/sparqlapi"
 	"github.com/gleanerio/nabu/pkg/config"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
-	"log"
 
 	"github.com/minio/minio-go/v7"
 )

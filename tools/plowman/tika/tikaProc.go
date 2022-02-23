@@ -3,12 +3,12 @@ package tika
 import (
 	"bytes"
 	"fmt"
+	log "github.com/sirupsen/logrus"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"sync"
 
-	//	"log"
+	//	log "github.com/sirupsen/logrus"
 
 	"github.com/bbalet/stopwords"
 	"github.com/blevesearch/bleve"

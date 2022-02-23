@@ -1,7 +1,7 @@
 package cli
 
 import (
-	"log"
+	log "github.com/sirupsen/logrus"
 	"mime"
 	"os"
 	"path"
@@ -113,19 +113,6 @@ func initConfig() {
 	//viper.AutomaticEnv() // read in environment variables that match
 
 	// If a config file is found, read it in.
-
-	// Set up some logging approaches
-	f, err := os.OpenFile("naburun.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
-	if err != nil {
-		log.Fatalf("error opening file: %v", err)
-	}
-	defer f.Close()
-
-	log.SetOutput(f)
-	log.SetFlags(log.Lshortfile)
-	// log.SetOutput(ioutil.Discard) // turn off all logging
-	//wrt := io.MultiWriter(os.Stdout, f)
-	//log.SetOutput(wrt)
 
 	mc, err = objects.MinioConnection(viperVal)
 	if err != nil {

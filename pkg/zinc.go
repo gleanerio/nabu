@@ -2,7 +2,7 @@ package pkg
 
 import (
 	"fmt"
-	"log"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/gleanerio/nabu/internal/objects"
 	"github.com/gleanerio/nabu/internal/services/zinc"

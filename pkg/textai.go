@@ -5,8 +5,8 @@ import (
 	"github.com/gleanerio/nabu/internal/objects"
 	"github.com/gleanerio/nabu/internal/services/txtai"
 	"github.com/minio/minio-go/v7"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
-	"log"
 )
 
 func NabuTxtai(v1 *viper.Viper) error {

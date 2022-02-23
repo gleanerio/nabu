@@ -4,8 +4,8 @@ import (
 	"github.com/gleanerio/nabu/internal/objects"
 	"github.com/gleanerio/nabu/internal/sparqlapi"
 	"github.com/minio/minio-go/v7"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
-	"log"
 )
 
 func Prefix(v1 *viper.Viper, mc *minio.Client) error {

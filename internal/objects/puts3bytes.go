@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"context"
 	"github.com/minio/minio-go/v7"
-	"log"
+	log "github.com/sirupsen/logrus"
 )
 
 // PutS3Bytes is used write an object
