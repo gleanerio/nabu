@@ -1,14 +1,15 @@
-package flows
+package sparqlapi
 
 import (
 	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/url"
 	"strings"
+
+	log "github.com/sirupsen/logrus"
 )
 
 // Ask holds results from SPARQL ASK
@@ -17,8 +18,8 @@ type Ask struct {
 	Boolean bool   `json:"boolean"`
 }
 
-// gexists return true is exists
-func gexists(spql, g string) (bool, error) {
+// IsGraph return true is exists
+func IsGraph(spql, g string) (bool, error) {
 	d := fmt.Sprintf("ASK WHERE { GRAPH <%s> { ?s ?p ?o } }", g)
 
 	pab := []byte("")
