@@ -21,6 +21,7 @@ require (
 	github.com/jonboulle/clockwork v0.1.0 // indirect
 	github.com/kisielk/godepgraph v0.0.0-20190626013829-57a7e4a651a9 // indirect
 	github.com/knakk/rdf v0.0.0-20190304171630-8521bf4c5042
+	github.com/meilisearch/meilisearch-go v0.18.0 // indirect
 	github.com/minio/minio-go v6.0.14+incompatible
 	github.com/minio/minio-go/v7 v7.0.15
 	github.com/neuml/txtai.go v1.0.0
@@ -35,10 +36,12 @@ require (
 	github.com/soheilhy/cmux v0.1.4 // indirect
 	github.com/spf13/cobra v1.2.1
 	github.com/spf13/viper v1.9.0
-	github.com/tidwall/gjson v1.6.7
+	github.com/tidwall/gjson v1.12.1
+	github.com/tidwall/sjson v1.2.4 // indirect
 	github.com/tmc/grpc-websocket-proxy v0.0.0-20190109142713-0ad062ec5ee5 // indirect
+	github.com/valyala/fastjson v1.6.1 // indirect
 	github.com/xiang90/probing v0.0.0-20190116061207-43a291ad63a2 // indirect
-	golang.org/x/text v0.3.6
+	golang.org/x/text v0.3.7
 	gopkg.in/redis.v5 v5.2.9 // indirect
 	gopkg.in/resty.v1 v1.12.0 // indirect
 	honnef.co/go/tools v0.1.2 // indirect

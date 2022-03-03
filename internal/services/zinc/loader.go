@@ -1,11 +1,12 @@
 package zinc
 
 import (
-	"bytes"
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"sync"
+	"path"
+	"path/filepath"
+	"strings"
 
 	"github.com/gleanerio/nabu/internal/objects"
 	"github.com/gleanerio/nabu/pkg/config"
@@ -25,61 +26,63 @@ func ObjectAssembly(v1 *viper.Viper, mc *minio.Client) error {
 		return err
 	}
 
+	fmt.Println("Zinc run started")
+
 	bar := progressbar.Default(int64(len(oa)))
 
 	// Single threaded loop
+	for item := range oa {
+		_, err := docfunc(v1, mc, bucketName, oa[item], "endpoint")
+		if err != nil {
+			log.Println(err)
+		}
+		bar.Add(1)
+	}
+
+	// TODO Go func version
+	//semaphoreChan := make(chan struct{}, 15) // a blocking channel to keep concurrency under control
+	//defer close(semaphoreChan)
+	//wg := sync.WaitGroup{}
+
+	//log.Println("Threaded run testing")
+
 	//for item := range oa {
+	//wg.Add(1)
+	//go func(item int) {
+	//semaphoreChan <- struct{}{}
+
 	//_, err := docfunc(v1, mc, bucketName, oa[item], "endpoint")
 	//if err != nil {
 	//log.Println(err)
 	//}
+
+	//wg.Done()
 	//bar.Add(1)
+	//<-semaphoreChan // clear a spot in the semaphore channel for the next indexing event
+	//}(item)
 	//}
-
-	// TODO Go func version
-	semaphoreChan := make(chan struct{}, 15) // a blocking channel to keep concurrency under control
-	defer close(semaphoreChan)
-	wg := sync.WaitGroup{}
-
-	log.Println("Threaded run testing")
-
-	for item := range oa {
-		wg.Add(1)
-		go func(item int) {
-			semaphoreChan <- struct{}{}
-
-			_, err := docfunc(v1, mc, bucketName, oa[item], "endpoint")
-			if err != nil {
-				log.Println(err)
-			}
-
-			wg.Done()
-			bar.Add(1)
-			<-semaphoreChan // clear a spot in the semaphore channel for the next indexing event
-		}(item)
-	}
-	wg.Wait()
+	//wg.Wait()
 
 	return err
 }
 
 // curl -u admin:Complexpass#123 -XPUT -d '{"name":"Prabhat Sharma"}' http://localhost:4080/api/myshinynewindex/document
 func docfunc(v1 *viper.Viper, mc *minio.Client, bucketName string, item string, endpoint string) ([]byte, error) {
-	jo2 := item
-
-	b, _, err := objects.GetS3Bytes(mc, bucketName, jo2)
+	// get item
+	b, _, err := objects.GetS3Bytes(mc, bucketName, item)
 	if err != nil {
 		return nil, err
 	}
+	s := string(b)
 
-	// TODO skolemize the RDF here..
+	// Build URL
+	//url := fmt.Sprintf("http://localhost:3030/testing/data?graph=urn:testing:testgraph")
+	fp := filepath.Base(item)
+	nns := strings.TrimSuffix(fp, path.Ext(fp))
+	url := fmt.Sprintf("http://localhost:4080/api/iow/_doc/%s", nns)
 
-	// pulled fro the tika code which I need to review for examples
-	// of modularity and also to clean up based on this new approach too.
-	url := fmt.Sprintf("http://localhost:3030/testing/data?graph=urn:testing:testgraph")
-	req, err := http.NewRequest("PUT", url, bytes.NewReader(b))
-	//req.Header.Set("Accept", "application/n-quads")
-	req.Header.Set("Content-Type", "application/n-quads")
+	req, err := http.NewRequest("PUT", url, strings.NewReader(s))
+	req.SetBasicAuth("admin", "Complexpass#123") // TODO make this tripped on a config flag and place values in config or environment var
 	req.Header.Set("User-Agent", "EarthCube_DataBot/1.0")
 
 	client := &http.Client{}
@@ -95,6 +98,7 @@ func docfunc(v1 *viper.Viper, mc *minio.Client, bucketName string, item string, 
 		return nil, err
 	}
 
+	log.Println(string(body))
 	// TESTING
 	//log.Printf("%s : %d  : %s\n", jo2, len(b), endpoint)
 
