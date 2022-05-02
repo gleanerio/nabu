@@ -63,7 +63,10 @@ func init() {
 	// Here you will define your flags and configuration settings.
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
-	rootCmd.PersistentFlags().StringVar(&prefixVal, "prefix", "", "prefix to run")
+	rootCmd.PersistentFlags().StringVar(&prefixVal, "prefix", "", "prefix to run. use source in future.")
+	// This needs to be done right... there are prov/source milled/source
+	// will need a custom validator to say, hey use prefix.
+	//	rootCmd.PersistentFlags().StringVar(&prefixVal, "source", "", "prefix to run. Consistency with glcon commend")
 
 	rootCmd.PersistentFlags().StringVar(&cfgPath, "cfgPath", "configs", "base location for config files (default is configs/)")
 	rootCmd.PersistentFlags().StringVar(&cfgName, "cfgName", "local", "config file (default is local so configs/local)")
