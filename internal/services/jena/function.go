@@ -16,12 +16,12 @@ import (
 )
 
 // curl -u admin:Complexpass#123 -XPUT -d '{"name":"Prabhat Sharma"}' http://localhost:4080/api/myshinynewindex/document
-func docfunc(v1 *viper.Viper, mc *minio.Client, bucketName string, item string, endpoint string) ([]byte, error) {
+func docfunc(v1 *viper.Viper, mc *minio.Client, bucketName string, item string, endpoint string) (string, error) {
 	jo2 := item
 
 	b, _, err := objects.GetS3Bytes(mc, bucketName, jo2)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	log.Printf("Jena call with %s/%s", bucketName, item)
@@ -41,10 +41,11 @@ func docfunc(v1 *viper.Viper, mc *minio.Client, bucketName string, item string, 
 	} else if strings.Contains(s2c, ".nq") {
 		g = fmt.Sprintf("urn:%s:%s", bucketName, strings.TrimSuffix(s2c, ".nq"))
 	} else {
-		return nil, errors.New("unable to generate graph URI")
+		return "", errors.New("unable to generate graph URI")
 	}
 
 	url := fmt.Sprintf("http://localhost:3030/oih/data?graph=%s", g)
+	log.Printf("Loding to %s\n", url)
 	req, err := http.NewRequest("PUT", url, bytes.NewReader(b))
 	//req.Header.Set("Accept", "application/n-quads")
 	req.Header.Set("Content-Type", "application/n-quads")
@@ -53,18 +54,18 @@ func docfunc(v1 *viper.Viper, mc *minio.Client, bucketName string, item string, 
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body) // return body if you want to debugg test with it
 	if err != nil {
 		log.Println(string(body))
-		return body, err
+		return string(body), err
 	}
 
 	// TESTING
 	//log.Printf("%s : %d  : %s\n", jo2, len(b), endpoint)
 
-	return body, nil
+	return string(body), err
 }

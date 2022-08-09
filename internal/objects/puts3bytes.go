@@ -17,7 +17,7 @@ func PutS3Bytes(mc *minio.Client, bucketName, objectName, mimeType string, objec
 	n, err := mc.PutObject(context.Background(), bucketName, objectName, bytes.NewReader(object), int64(len(object)), minio.PutObjectOptions{ContentType: mimeType, UserMetadata: usermeta})
 	if err != nil {
 		log.Printf("%s", objectName)
-		log.Fatalln(err)
+		log.Println(err)
 	}
 	log.Printf("Uploaded Bucket:%s File:%s Size %d\n", bucketName, objectName, n)
 

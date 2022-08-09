@@ -9,7 +9,6 @@ import (
 )
 
 func Prefix(v1 *viper.Viper, mc *minio.Client) error {
-
 	log.Println("Load graphs from prefix to triplestore")
 	err := sparqlapi.ObjectAssembly(v1, mc)
 
@@ -17,7 +16,6 @@ func Prefix(v1 *viper.Viper, mc *minio.Client) error {
 		log.Println(err)
 	}
 	return err
-
 }
 
 func NabuPrefix(v1 *viper.Viper) error {

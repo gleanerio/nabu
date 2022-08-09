@@ -1,11 +1,12 @@
 package cli
 
 import (
-	log "github.com/sirupsen/logrus"
 	"mime"
 	"os"
 	"path"
 	"path/filepath"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/gleanerio/nabu/internal/objects"
 	"github.com/gleanerio/nabu/pkg/config"
@@ -123,15 +124,17 @@ func initConfig() {
 	if err != nil {
 		log.Println("cannot read bucketname from : %s ", err)
 	}
+
 	// Override prefix in config if flag set
 	//if isFlagPassed("prefix") {
-	//	out := viperVal.GetStringMapString("objects")
-	//	b := out["bucket"]
-	//	p := prefixVal
-	//	// r := out["region"]
-	//	// v1.Set("objects", map[string]string{"bucket": b, "prefix": NEWPREFIX, "region": r})
-	//	viperVal.Set("objects", map[string]string{"bucket": b, "prefix": p})
+	//out := viperVal.GetStringMapString("objects")
+	//b := out["bucket"]
+	//p := prefixVal
+	//// r := out["region"]
+	//// v1.Set("objects", map[string]string{"bucket": b, "prefix": NEWPREFIX, "region": r})
+	//viperVal.Set("objects", map[string]string{"bucket": b, "prefix": p})
 	//}
+
 	if prefixVal != "" {
 		out := viperVal.GetStringMapString("objects")
 		b := out["bucket"]

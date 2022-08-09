@@ -21,8 +21,8 @@ func NabuJena(v1 *viper.Viper) error {
 }
 
 func Jena(v1 *viper.Viper, mc *minio.Client) error {
-	err := jena.ObjectAssembly(v1, mc)
-	//err := jena.BulkAssembly(v1, mc)
+	//err := jena.ObjectAssembly(v1, mc)
+	err := jena.BulkAssembly(v1, mc)
 
 	if err != nil {
 		fmt.Println(err)
