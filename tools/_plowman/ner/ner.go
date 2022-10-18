@@ -11,8 +11,8 @@ import (
 
 	"github.com/buger/jsonparser"
 	"github.com/gleanerio/gleaner/internal/common"
+	prose "github.com/jdkato/prose/v2"
 	minio "github.com/minio/minio-go"
-	prose "gopkg.in/jdkato/prose.v2"
 )
 
 // MockObjects test a concurrent version of calling mock
