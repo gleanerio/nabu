@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/gleanerio/nabu/pkg/config"
-	"log"
+	log "github.com/sirupsen/logrus"
 	"path"
 	"strings"
 	"sync"

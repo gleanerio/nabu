@@ -3,7 +3,7 @@ package graph
 import (
 	"encoding/json"
 	"fmt"
-	"log"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/piprate/json-gold/ld"
 )

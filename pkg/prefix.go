@@ -4,17 +4,17 @@ import (
 	"github.com/gleanerio/nabu/internal/objects"
 	"github.com/gleanerio/nabu/internal/sparqlapi"
 	"github.com/minio/minio-go/v7"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
-	"log"
 )
 
 func Prefix(v1 *viper.Viper, mc *minio.Client) error {
 
-	log.Println("Load graphs from prefix to triplestore")
+	log.Info("Load graphs from prefix to triplestore")
 	err := sparqlapi.ObjectAssembly(v1, mc)
 
 	if err != nil {
-		log.Println(err)
+		log.Error(err)
 	}
 	return err
 

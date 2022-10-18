@@ -1,8 +1,7 @@
 package pkg
 
 import (
-	"fmt"
-	"log"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/gleanerio/nabu/internal/objects"
 	"github.com/gleanerio/nabu/internal/services/zinc"
@@ -20,12 +19,12 @@ func NabuZinc(v1 *viper.Viper) error {
 }
 
 func Zinc(v1 *viper.Viper, mc *minio.Client) error {
-	fmt.Println("Tika extract text from objects")
+	log.Info("Tika extract text from objects")
 
 	err := zinc.ObjectAssembly(v1, mc)
 
 	if err != nil {
-		fmt.Println(err)
+		log.Error(err)
 	}
 	return err
 }

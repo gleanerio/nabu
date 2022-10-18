@@ -3,13 +3,13 @@ package graph
 import (
 	"bytes"
 	"errors"
-	"log"
+	log "github.com/sirupsen/logrus"
 	"strings"
 
 	"github.com/knakk/rdf"
 )
 
-//NQtoNTGraph converts nquads to nquads with a new context graph
+// NQtoNTGraph converts nquads to nquads with a new context graph
 func NQToNTGraph(inquads, newctx string) (string, string, error) {
 	// loop on tr and make a set of triples
 	ntr := []rdf.Triple{}
