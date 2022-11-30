@@ -1,45 +1,57 @@
 module github.com/gleanerio/nabu
 
-go 1.15
+go 1.19
 
 require (
-	github.com/bbalet/stopwords v1.0.0
-	github.com/blevesearch/bleve v1.0.14 // indirect
-	github.com/buger/jsonparser v1.1.1 // indirect
-	github.com/coreos/bbolt v1.3.2 // indirect
-	github.com/coreos/etcd v3.3.13+incompatible // indirect
-	github.com/coreos/go-systemd v0.0.0-20190321100706-95778dfbb74e // indirect
-	github.com/coreos/pkg v0.0.0-20180928190104-399ea9e2e55f // indirect
-	github.com/coyove/jsonbuilder v0.0.0-20160414062945-90ee6d2c3c43 // indirect
-	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
-	github.com/gleanerio/gleaner v0.0.0-20211103190335-f9d8811ee43b // indirect
-	github.com/go-ini/ini v1.62.0 // indirect
-	github.com/gosuri/uilive v0.0.4 // indirect
-	github.com/gosuri/uiprogress v0.0.1
-	github.com/grpc-ecosystem/go-grpc-middleware v1.0.0 // indirect
-	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0 // indirect
-	github.com/jonboulle/clockwork v0.1.0 // indirect
-	github.com/kisielk/godepgraph v0.0.0-20190626013829-57a7e4a651a9 // indirect
 	github.com/knakk/rdf v0.0.0-20190304171630-8521bf4c5042
-	github.com/minio/minio-go v6.0.14+incompatible
 	github.com/minio/minio-go/v7 v7.0.15
 	github.com/neuml/txtai.go v1.0.0
-	github.com/paulmach/go.geojson v1.4.0 // indirect
-	github.com/piprate/json-gold v0.4.0
-	github.com/prometheus/client_golang v0.9.3 // indirect
-	github.com/protolambda/gocyto v0.0.1 // indirect
-	github.com/rs/xid v1.2.1 // indirect
-	github.com/schollz/progressbar v1.0.0
+	github.com/orandin/lumberjackrus v1.0.1
+	github.com/piprate/json-gold v0.4.1-0.20210813112359-33b90c4ca86c
+	github.com/rs/xid v1.2.1
 	github.com/schollz/progressbar/v3 v3.8.3
-	github.com/sirupsen/logrus v1.8.1 // indirect
-	github.com/soheilhy/cmux v0.1.4 // indirect
+	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.2.1
 	github.com/spf13/viper v1.9.0
 	github.com/tidwall/gjson v1.6.7
-	github.com/tmc/grpc-websocket-proxy v0.0.0-20190109142713-0ad062ec5ee5 // indirect
-	github.com/xiang90/probing v0.0.0-20190116061207-43a291ad63a2 // indirect
-	golang.org/x/text v0.3.6
-	gopkg.in/redis.v5 v5.2.9 // indirect
-	gopkg.in/resty.v1 v1.12.0 // indirect
-	honnef.co/go/tools v0.1.2 // indirect
+)
+
+require (
+	github.com/dustin/go-humanize v1.0.0 // indirect
+	github.com/fsnotify/fsnotify v1.5.1 // indirect
+	github.com/go-resty/resty/v2 v2.3.0 // indirect
+	github.com/google/uuid v1.2.0 // indirect
+	github.com/hashicorp/hcl v1.0.0 // indirect
+	github.com/inconshreveable/mousetrap v1.0.0 // indirect
+	github.com/json-iterator/go v1.1.11 // indirect
+	github.com/klauspost/compress v1.13.5 // indirect
+	github.com/klauspost/cpuid v1.3.1 // indirect
+	github.com/magiconair/properties v1.8.5 // indirect
+	github.com/mattn/go-runewidth v0.0.13 // indirect
+	github.com/minio/md5-simd v1.1.0 // indirect
+	github.com/minio/sha256-simd v0.1.1 // indirect
+	github.com/mitchellh/colorstring v0.0.0-20190213212951-d06e56a500db // indirect
+	github.com/mitchellh/go-homedir v1.1.0 // indirect
+	github.com/mitchellh/mapstructure v1.4.2 // indirect
+	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
+	github.com/modern-go/reflect2 v1.0.1 // indirect
+	github.com/pelletier/go-toml v1.9.4 // indirect
+	github.com/pquerna/cachecontrol v0.0.0-20180517163645-1555304b9b35 // indirect
+	github.com/rivo/uniseg v0.2.0 // indirect
+	github.com/spf13/afero v1.6.0 // indirect
+	github.com/spf13/cast v1.4.1 // indirect
+	github.com/spf13/jwalterweatherman v1.1.0 // indirect
+	github.com/spf13/pflag v1.0.5 // indirect
+	github.com/subosito/gotenv v1.2.0 // indirect
+	github.com/tidwall/match v1.0.3 // indirect
+	github.com/tidwall/pretty v1.0.2 // indirect
+	golang.org/x/crypto v0.0.0-20210817164053-32db794688a5 // indirect
+	golang.org/x/net v0.0.0-20210916014120-12bc252f5db8 // indirect
+	golang.org/x/sys v0.0.0-20211025201205-69cdffdb9359 // indirect
+	golang.org/x/term v0.0.0-20210615171337-6886f2dfbf5b // indirect
+	golang.org/x/text v0.3.6 // indirect
+	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
+	gopkg.in/ini.v1 v1.63.2 // indirect
+	gopkg.in/natefinch/lumberjack.v2 v2.0.0 // indirect
+	gopkg.in/yaml.v2 v2.4.0 // indirect
 )

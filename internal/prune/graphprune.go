@@ -7,16 +7,16 @@ import (
 	"github.com/gleanerio/nabu/pkg/config"
 	"github.com/minio/minio-go/v7"
 	"github.com/schollz/progressbar/v3"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"github.com/tidwall/gjson"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/url"
 	"strings"
 )
 
-//Snip removes graphs in TS not in object store
+// Snip removes graphs in TS not in object store
 func Snip(v1 *viper.Viper, mc *minio.Client) error {
 
 	var pa []string

@@ -1,9 +1,8 @@
 package pkg
 
 import (
-	"fmt"
 	"github.com/gleanerio/nabu/internal/services/jena"
-	"log"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/gleanerio/nabu/internal/objects"
 	"github.com/spf13/viper"
@@ -24,7 +23,7 @@ func Jena(v1 *viper.Viper, mc *minio.Client) error {
 	err := jena.BulkAssembly(v1, mc)
 
 	if err != nil {
-		fmt.Println(err)
+		log.Error(err)
 	}
 	return err
 }

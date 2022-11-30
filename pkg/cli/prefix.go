@@ -5,7 +5,7 @@ import (
 
 	"github.com/gleanerio/nabu/pkg"
 
-	"log"
+	log "github.com/sirupsen/logrus"
 	"os"
 
 	"github.com/spf13/cobra"

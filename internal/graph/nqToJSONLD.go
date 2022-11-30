@@ -3,7 +3,7 @@ package graph
 import (
 	"encoding/json"
 	"github.com/piprate/json-gold/ld"
-	"log"
+	log "github.com/sirupsen/logrus"
 )
 
 // NQToJSONLD takes nquads and converts to JSON-LD
