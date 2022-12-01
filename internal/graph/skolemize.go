@@ -12,7 +12,7 @@ import (
 
 // Skolemization replaces blank nodes with URIs  The mapping approach is needed since this
 // function can be used on a whole data graph, not just a single triple
-func Skolemization(nq string) string {
+func Skolemization(nq string) (string, error) {
 	scanner := bufio.NewScanner(strings.NewReader(nq))
 
 	// since a data graph may have several references to any given blank node, we need to keep a
@@ -47,8 +47,9 @@ func Skolemization(nq string) string {
 		}
 	}
 
-	if err := scanner.Err(); err != nil {
-		log.Fatal(err)
+	var err = scanner.Err()
+	if err != nil {
+		log.Error(err)
 	}
 
 	filebytes := []byte(nq)
@@ -58,5 +59,5 @@ func Skolemization(nq string) string {
 		filebytes = bytes.Replace(filebytes, []byte(k), []byte(v), -1)
 	}
 
-	return string(filebytes)
+	return string(filebytes), err
 }
