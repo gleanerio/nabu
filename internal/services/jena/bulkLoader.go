@@ -3,7 +3,6 @@ package jena
 import (
 	"context"
 	"fmt"
-	"os"
 	"path"
 	"strings"
 
@@ -17,6 +16,7 @@ import (
 
 // BulkAssembly collects the objects from a bucket to load
 func BulkAssembly(v1 *viper.Viper, mc *minio.Client) error {
+	fmt.Println("Jena:BulkAssembly")
 	bucketName, _ := config.GetBucketName(v1)
 	objCfg, _ := config.GetObjectsConfig(v1)
 	pa := objCfg.Prefix
@@ -36,8 +36,6 @@ func BulkAssembly(v1 *viper.Viper, mc *minio.Client) error {
 			return err
 		}
 	}
-
-	os.Exit(0)
 
 	for p := range pa {
 		// will need a function call at some point to work with the new object
