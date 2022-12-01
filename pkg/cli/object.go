@@ -2,10 +2,9 @@ package cli
 
 import (
 	"fmt"
-	"os"
-
 	"github.com/gleanerio/nabu/pkg"
 	log "github.com/sirupsen/logrus"
+	"os"
 
 	"github.com/spf13/cobra"
 )
@@ -32,6 +31,7 @@ var objectCmd = &cobra.Command{
 			log.Fatal("must have an argument nabu object objectId")
 			os.Exit(1)
 		}
+
 	},
 }
 

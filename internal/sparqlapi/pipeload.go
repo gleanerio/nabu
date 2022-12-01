@@ -51,7 +51,7 @@ func ObjectAssembly(v1 *viper.Viper, mc *minio.Client) error {
 
 		for object := range objectCh {
 			if object.Err != nil {
-				log.Println(object.Err)
+				log.Error(object.Err)
 				return object.Err
 			}
 			// fmt.Println(object)
@@ -63,7 +63,7 @@ func ObjectAssembly(v1 *viper.Viper, mc *minio.Client) error {
 		for item := range oa {
 			_, err := PipeLoad(v1, mc, bucketName, oa[item], spql.Endpoint)
 			if err != nil {
-				log.Println(err)
+				log.Error(err)
 			}
 			bar.Add(1)
 			// log.Println(string(s)) // get "s" on pipeload and send to a log file
@@ -76,7 +76,7 @@ func ObjectAssembly(v1 *viper.Viper, mc *minio.Client) error {
 // PipeLoad reads from an object and loads directly into a triplestore
 func PipeLoad(v1 *viper.Viper, mc *minio.Client, bucket, object, spql string) ([]byte, error) {
 	// build our quad/graph from the object path
-	log.Printf("Loading %s \n", object)
+	log.Info("Loading %s \n", object)
 	s2c := strings.Replace(object, "/", ":", -1)
 
 	// build the URN for the graph context string we use
@@ -105,7 +105,8 @@ func PipeLoad(v1 *viper.Viper, mc *minio.Client, bucket, object, spql string) ([
 
 	b, _, err := objects.GetS3Bytes(mc, bucket, object)
 	if err != nil {
-		log.Printf("gets3Bytes %v\n", err)
+		log.Error("gets3Bytes %v\n", err)
+		// should this just return. Do we have an object?
 	}
 
 	// TODO, use the mimetype or suffix in general to select the path to load    or overload from the config file?
@@ -116,33 +117,33 @@ func PipeLoad(v1 *viper.Viper, mc *minio.Client, bucket, object, spql string) ([
 
 	// if strings.Contains(object, ".jsonld") { // TODO explore why this hack is needed and the mimetype for JSON-LD is not returned
 	if strings.Compare(mt, "application/ld+json") == 0 {
-		log.Println("Convert JSON-LD file to nq")
+		log.Info("Convert JSON-LD file to nq")
 		nt, err = graph.JSONLDToNQ(string(b))
 		if err != nil {
-			log.Printf("JSONLDToNQ err: %s", err)
+			log.Error("JSONLDToNQ err: %s", err)
 		}
 	} else {
 		nt, _, err = graph.NQToNTCtx(string(b))
 		if err != nil {
-			log.Printf("nqToNTCtx err: %s", err)
+			log.Error("nqToNTCtx err: %s", err)
 		}
 	}
 
 	// drop any graph we are going to load..  we assume we are doing those due to an update...
 	_, err = Drop(v1, g)
 	if err != nil {
-		log.Println(err)
+		log.Error(err)
 	}
 
 	// If the graph is a quad already..   we need to make it triples
 	// so we can load with "our" context.
 	// Note: We are tossing source prov for out prov
 
-	log.Printf("Graph loading as: %s\n", g)
+	log.Info("Graph loading as: %s\n", g)
 
 	// TODO if array is too large, need to split it and load parts
 	// Let's declare 10k lines the largest we want to send in.
-	log.Printf("Graph size: %d\n", len(nt))
+	log.Trace("Graph size: %d\n", len(nt))
 
 	scanner := bufio.NewScanner(strings.NewReader(nt))
 	lc := 0
@@ -151,18 +152,18 @@ func PipeLoad(v1 *viper.Viper, mc *minio.Client, bucket, object, spql string) ([
 		lc = lc + 1
 		sg = append(sg, scanner.Text())
 		if lc == 10000 { // use line count, since byte len might break inside a triple statement..   it's an OK proxy
-			log.Printf("Subgraph of %d lines", len(sg))
+			log.Trace("Subgraph of %d lines", len(sg))
 			// TODO..  upload what we have here, modify the call code to upload these sections
 			_, err = Insert(g, strings.Join(sg, "\n"), spql) // convert []string to strings joined with new line to form a RDF NT set
 			if err != nil {
-				log.Printf("Insert err: %s", err)
+				log.Error("Insert err: %s", err)
 			}
 			sg = nil // clear the array
 			lc = 0   // reset the counter
 		}
 	}
 	if lc > 0 {
-		log.Printf("Subgraph (out of scanner) of %d lines", len(sg))
+		log.Trace("Subgraph (out of scanner) of %d lines", len(sg))
 		_, err = Insert(g, strings.Join(sg, "\n"), spql) // convert []string to strings joined with new line to form a RDF NT set
 	}
 
@@ -182,7 +183,7 @@ func Insert(g, nt, spql string) (string, error) {
 
 	req, err := http.NewRequest("POST", spql, bytes.NewBuffer(pab))
 	if err != nil {
-		log.Println(err)
+		log.Error(err)
 	}
 	// req.Header.Set("Content-Type", "application/sparql-results+xml")
 	req.Header.Set("Content-Type", "application/sparql-update")
@@ -190,19 +191,19 @@ func Insert(g, nt, spql string) (string, error) {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Println(err)
+		log.Error(err)
 	}
 	defer resp.Body.Close()
 
-	log.Println("response Status:", resp.Status)
-	log.Println("response Headers:", resp.Header)
+	log.Trace("response Status:", resp.Status)
+	log.Trace("response Headers:", resp.Header)
 
 	body, err := ioutil.ReadAll(resp.Body)
 	// log.Println(string(body))
 	if err != nil {
-		log.Println("response Body:", string(body))
-		log.Println("response Status:", resp.Status)
-		log.Println("response Headers:", resp.Header)
+		log.Error("response Body:", string(body))
+		log.Error("response Status:", resp.Status)
+		log.Error("response Headers:", resp.Header)
 	}
 
 	return resp.Status, err
@@ -220,7 +221,7 @@ func Drop(v1 *viper.Viper, g string) ([]byte, error) {
 	//req, err := http.NewRequest("POST", spql["endpoint"], bytes.NewBuffer(pab))
 	req, err := http.NewRequest("POST", spql.Endpoint, bytes.NewBuffer(pab))
 	if err != nil {
-		log.Println(err)
+		log.Error(err)
 	}
 	req.Header.Set("Content-Type", "application/sparql-update")
 	// req.Header.Set("Content-Type", "application/sparql-results+xml")
@@ -228,18 +229,18 @@ func Drop(v1 *viper.Viper, g string) ([]byte, error) {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Println(err)
+		log.Error(err)
 	}
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.Println("response Body:", string(body))
-		log.Println("response Status:", resp.Status)
-		log.Println("response Headers:", resp.Header)
+		log.Error("response Body:", string(body))
+		log.Error("response Status:", resp.Status)
+		log.Error("response Headers:", resp.Header)
 	}
 
-	// log.Println(string(body))
+	log.Trace(string(body))
 
 	return body, err
 }
@@ -261,7 +262,7 @@ func DropGet(v1 *viper.Viper, g string) ([]byte, error) {
 	//req, err := http.NewRequest("GET", fmt.Sprintf("%s?%s", spql["endpoint"], params.Encode()), bytes.NewBuffer(pab))
 	req, err := http.NewRequest("GET", fmt.Sprintf("%s?%s", spql.Endpoint, params.Encode()), bytes.NewBuffer(pab))
 	if err != nil {
-		log.Println(err)
+		log.Error(err)
 	}
 	// req.Header.Set("Content-Type", "application/sparql-results+json")
 	req.Header.Set("Content-Type", "application/sparql-update")
@@ -269,18 +270,18 @@ func DropGet(v1 *viper.Viper, g string) ([]byte, error) {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Println(err)
+		log.Error(err)
 	}
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.Println("response Body:", string(body))
-		log.Println("response Status:", resp.Status)
-		log.Println("response Headers:", resp.Header)
+		log.Error("response Body:", string(body))
+		log.Error("response Status:", resp.Status)
+		log.Error("response Headers:", resp.Header)
 	}
 
-	log.Println(string(body))
+	log.Trace(string(body))
 
 	return body, err
 }

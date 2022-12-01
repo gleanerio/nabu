@@ -9,7 +9,7 @@ import (
 	"github.com/knakk/rdf"
 )
 
-//NQtoNTCtx converts nquads to ntriples plus a context (graph) string
+// NQtoNTCtx converts nquads to ntriples plus a context (graph) string
 func NQToNTCtx(inquads string) (string, string, error) {
 	// loop on tr and make a set of triples
 	ntr := []rdf.Triple{}

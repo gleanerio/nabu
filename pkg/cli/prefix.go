@@ -1,14 +1,15 @@
 package cli
 
 import (
-	"os"
+	"fmt"
 
 	"github.com/gleanerio/nabu/pkg"
+
 	log "github.com/sirupsen/logrus"
+	"os"
+
 	"github.com/spf13/cobra"
 )
-
-var Source string
 
 // checkCmd represents the check command
 var PrefixCmd = &cobra.Command{
@@ -16,13 +17,7 @@ var PrefixCmd = &cobra.Command{
 	Short: "nabu prefix command",
 	Long:  `Load graphs from prefix to triplestore`,
 	Run: func(cmd *cobra.Command, args []string) {
-
-		if Source != "" {
-			m := viperVal.GetStringMap("objects")
-			m["prefix"] = Source
-			viperVal.Set("objects", m)
-		}
-
+		fmt.Println("prefix called")
 		err := pkg.Prefix(viperVal, mc)
 		if err != nil {
 			log.Fatal(err)
@@ -43,6 +38,5 @@ func init() {
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	//checkCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	PrefixCmd.Flags().StringVarP(&Source, "source", "s", "", "Source prefix to load")
+	// checkCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

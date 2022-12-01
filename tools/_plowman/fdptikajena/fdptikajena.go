@@ -17,8 +17,8 @@ import (
 
 	// "github.com/bbalet/stopwords"
 	"github.com/deiu/rdf2go"
-	"github.com/go-resty/resty"
 	minio "github.com/minio/minio-go"
+	"gopkg.in/resty.v1"
 )
 
 // Manifest is the struct for the manifest from the data package

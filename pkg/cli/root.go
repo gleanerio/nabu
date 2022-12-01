@@ -1,12 +1,12 @@
 package cli
 
 import (
+	"github.com/gleanerio/nabu/internal/common"
+	log "github.com/sirupsen/logrus"
 	"mime"
 	"os"
 	"path"
 	"path/filepath"
-
-	log "github.com/sirupsen/logrus"
 
 	"github.com/gleanerio/nabu/internal/objects"
 	"github.com/gleanerio/nabu/pkg/config"
@@ -54,6 +54,7 @@ func init() {
 	//log.SetFlags(log.Lshortfile | log.LstdFlags) // optional: log date-time, filename, and line number
 	//log.Println("Logging to custom file")
 	//log.Println("EarthCube Nabu")
+	common.InitLogging()
 
 	mime.AddExtensionType(".jsonld", "application/ld+json")
 
@@ -122,19 +123,17 @@ func initConfig() {
 
 	bucketVal, err = config.GetBucketName(viperVal)
 	if err != nil {
-		log.Println("cannot read bucketname from : %s ", err)
+		log.Fatal("cannot read bucketname from : %s ", err)
 	}
-
 	// Override prefix in config if flag set
 	//if isFlagPassed("prefix") {
-	//out := viperVal.GetStringMapString("objects")
-	//b := out["bucket"]
-	//p := prefixVal
-	//// r := out["region"]
-	//// v1.Set("objects", map[string]string{"bucket": b, "prefix": NEWPREFIX, "region": r})
-	//viperVal.Set("objects", map[string]string{"bucket": b, "prefix": p})
+	//	out := viperVal.GetStringMapString("objects")
+	//	b := out["bucket"]
+	//	p := prefixVal
+	//	// r := out["region"]
+	//	// v1.Set("objects", map[string]string{"bucket": b, "prefix": NEWPREFIX, "region": r})
+	//	viperVal.Set("objects", map[string]string{"bucket": b, "prefix": p})
 	//}
-
 	if prefixVal != "" {
 		out := viperVal.GetStringMapString("objects")
 		b := out["bucket"]

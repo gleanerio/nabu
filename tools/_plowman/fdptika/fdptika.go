@@ -16,8 +16,8 @@ import (
 	"github.com/gleanerio/gleaner/internal/common"
 	"github.com/gleanerio/gleaner/internal/millers/millerutils"
 	"github.com/gleanerio/gleaner/pkg/utils"
-	"github.com/go-resty/resty"
 	minio "github.com/minio/minio-go"
+	"gopkg.in/resty.v1"
 )
 
 // Manifest is the struct for the manifest from the data package

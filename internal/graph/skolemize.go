@@ -2,25 +2,23 @@ package graph
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
-	"strings"
-
 	log "github.com/sirupsen/logrus"
+	"strings"
 
 	"github.com/rs/xid"
 )
 
 // Skolemization replaces blank nodes with URIs  The mapping approach is needed since this
 // function can be used on a whole data graph, not just a single triple
-func Skolemization(nq string) (string, error) {
+func Skolemization(nq string) string {
 	scanner := bufio.NewScanner(strings.NewReader(nq))
 
 	// since a data graph may have several references to any given blank node, we need to keep a
 	// map of our update.  It is also why the ID needs a non content approach since the blank node will
 	// be in a different triple set from time to time and we can not ensure what order we might encounter them at.
 	m := make(map[string]string) // make a map here to hold our updated strings
-
-	log.Println("Moving to map building section")
 
 	for scanner.Scan() {
 		split := strings.Split(scanner.Text(), " ")
@@ -43,25 +41,22 @@ func Skolemization(nq string) (string, error) {
 				// fmt.Printf("We had %s, already\n", oold)
 			} else {
 				guid := xid.New()
-				onew := fmt.Sprintf("<https://gleaner.io/xid/genid/%s>", guid.String()) // add in source ID in here too?
+				onew := fmt.Sprintf("<https://gleaner.io/xid/genid/%s>", guid.String())
 				m[oold] = onew
 			}
 		}
 	}
 
-	var err error
 	if err := scanner.Err(); err != nil {
-		log.Println(err)
-		return "", err
+		log.Fatal(err)
 	}
 
-	//filebytes := []byte(nq)
-	log.Println("Moving to string replace section")
+	filebytes := []byte(nq)
+
 	for k, v := range m {
-		nq = strings.Replace(nq, k, v, -1)
 		// fmt.Printf("Replace %s with %v \n", k, v)
-		//filebytes = bytes.Replace(filebytes, []byte(k), []byte(v), -1)
+		filebytes = bytes.Replace(filebytes, []byte(k), []byte(v), -1)
 	}
 
-	return nq, err
+	return string(filebytes)
 }

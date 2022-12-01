@@ -16,7 +16,7 @@ import (
 	"strings"
 )
 
-//Snip removes graphs in TS not in object store
+// Snip removes graphs in TS not in object store
 func Snip(v1 *viper.Viper, mc *minio.Client) error {
 
 	var pa []string
