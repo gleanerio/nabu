@@ -8,18 +8,19 @@ import (
 	"io"
 	"sync"
 
+	"github.com/gleanerio/nabu/internal/graph"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/minio/minio-go/v7"
 )
 
-// PipeCopyNG writes a new object based on an prefix, this function assumes the objects are valid when concatenated
+// PipeCopyJLD2NQ writes a new object based on an prefix, this function assumes the objects are valid when concatenated
 // name:  name of the NEW object
 // bucket:  source bucket  (and target bucket)
 // prefix:  source prefix
 // mc:  minio client pointer
-func PipeCopyNG(name, bucket, prefix string, mc *minio.Client) error {
-	log.Printf("Pipecopy with name: %s   bucket: %s  prefix: %s", name, bucket, prefix)
+func PipeCopyJLD2NQ(name, bucket, prefix string, mc *minio.Client) error {
+	log.Printf("JLD2NQ with name: %s   bucket: %s  prefix: %s", name, bucket, prefix)
 
 	pr, pw := io.Pipe()     // TeeReader of use?
 	lwg := sync.WaitGroup{} // work group for the pipe writes...
@@ -55,7 +56,26 @@ func PipeCopyNG(name, bucket, prefix string, mc *minio.Client) error {
 				log.Println(err)
 			}
 
-			_, err = pw.Write(b.Bytes())
+			s := string(b.Bytes())
+
+			log.Println("Calling JSONLDtoNQ")
+			nq, err := graph.JSONLDToNQ(s)
+			if err != nil {
+				log.Println(err)
+				return
+			}
+
+			// TODO add the context into this fle  (then load to Jena withouth explicate graph)
+			// g = fmt.Sprintf("urn:%s:%s", bucketName, strings.TrimSuffix(s2c, ".rdf"))
+			// func NQNewGraph(inquads, newctx string) (string, string, error) {
+
+			log.Println("Calling Skolemization")
+			snq, err := graph.Skolemization(nq)
+			if err != nil {
+				return
+			}
+
+			_, err = pw.Write([]byte(snq))
 			if err != nil {
 				return
 			}
@@ -63,10 +83,13 @@ func PipeCopyNG(name, bucket, prefix string, mc *minio.Client) error {
 
 	}()
 
+	//log.Printf("%s_graph.nq", name)
+
 	// go function to write to minio from pipe
 	go func() {
 		defer lwg.Done()
-		_, err := mc.PutObject(context.Background(), bucket, fmt.Sprintf("%s/%s", prefix, name), pr, -1, minio.PutObjectOptions{})
+		_, err := mc.PutObject(context.Background(), bucket, fmt.Sprintf("%s/%s", "scratch", name), pr, -1, minio.PutObjectOptions{})
+		//_, err := mc.PutObject(context.Background(), bucket, fmt.Sprintf("%s/%s", prefix, name), pr, -1, minio.PutObjectOptions{})
 		if err != nil {
 			log.Println(err)
 			return

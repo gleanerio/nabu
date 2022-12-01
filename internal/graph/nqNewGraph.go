@@ -3,14 +3,15 @@ package graph
 import (
 	"bytes"
 	"errors"
-	"log"
+	log "github.com/sirupsen/logrus"
 	"strings"
 
 	"github.com/knakk/rdf"
 )
 
-//NQtoNTGraph converts nquads to nquads with a new context graph
-func NQToNTGraph(inquads, newctx string) (string, string, error) {
+//NQNewGraph converts nquads to nquads with a new context graph
+func NQNewGraph(inquads, newctx string) (string, string, error) {
+
 	// loop on tr and make a set of triples
 	ntr := []rdf.Triple{}
 	g := ""
@@ -31,6 +32,8 @@ func NQToNTGraph(inquads, newctx string) (string, string, error) {
 		ntr = append(ntr, tr[i].Triple)
 	}
 
+	//ntr = append(ntr, )
+
 	// Assume context of first triple is context of all triples  (again, a bit of a hack,
 	// but likely valid as a single JSON-LD datagraph level).  This may be problematic for a "stitegraphs" where several
 	// datagraph are represented in a single large JSON-LD via some collection concept.  There it is possible someone might
@@ -46,7 +49,10 @@ func NQToNTGraph(inquads, newctx string) (string, string, error) {
 	// TODO output
 	outtriples := ""
 	buf := bytes.NewBufferString(outtriples)
+	//enc := rdf.NewQuadEncoder(buf, rdf.NQuads)
+
 	enc := rdf.NewTripleEncoder(buf, rdf.NTriples)
+
 	err = enc.EncodeAll(ntr)
 	if err != nil {
 		log.Printf("Error encoding triples: %v\n", err)
@@ -55,7 +61,7 @@ func NQToNTGraph(inquads, newctx string) (string, string, error) {
 
 	tb := bytes.NewBuffer([]byte(""))
 	for k := range ntr {
-		tb.WriteString(ntr[k].Serialize(rdf.NTriples))
+		tb.WriteString(ntr[k].Serialize(rdf.NQuads))
 	}
 
 	return tb.String(), g, err

@@ -2,7 +2,7 @@ package textindex
 
 import (
 	"fmt"
-	"log"
+	log "github.com/sirupsen/logrus"
 	"sync"
 
 	"github.com/blevesearch/bleve"

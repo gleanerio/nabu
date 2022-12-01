@@ -3,7 +3,7 @@ package graph
 import (
 	"bytes"
 	"errors"
-	"log"
+	log "github.com/sirupsen/logrus"
 	"strings"
 
 	"github.com/knakk/rdf"

@@ -2,21 +2,22 @@ package cli
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/gleanerio/nabu/pkg"
 	log "github.com/sirupsen/logrus"
-	"os"
 
 	"github.com/spf13/cobra"
 )
 
 // checkCmd represents the check command
-var zincCmd = &cobra.Command{
-	Use:   "zinc",
-	Short: "nabu zinc command",
-	Long:  `(not implemented)This will read the configs/{cfgPath}/gleaner file, and try to connect to the minio server`,
+var meiliCmd = &cobra.Command{
+	Use:   "meili",
+	Short: "nabu meili command",
+	Long:  `This will read the configs/{cfgPath}/gleaner and connect and load JSON-LD into MeiliSearch for full text indexing`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("zinc called")
-		err := pkg.Zinc(viperVal, mc)
+		fmt.Println("meili called")
+		err := pkg.Meili(viperVal, mc)
 		if err != nil {
 			log.Fatal(err)
 			os.Exit(1)
@@ -26,7 +27,7 @@ var zincCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(zincCmd)
+	rootCmd.AddCommand(meiliCmd)
 
 	// Here you will define your flags and configuration settings.
 

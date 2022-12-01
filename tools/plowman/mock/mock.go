@@ -4,10 +4,10 @@ import (
 	//	"bytes"
 
 	"fmt"
-	"log"
+	log "github.com/sirupsen/logrus"
 	"sync"
 
-	//	"log"
+	//	log "github.com/sirupsen/logrus"
 
 	"github.com/gleanerio/gleaner/internal/common"
 	minio "github.com/minio/minio-go"

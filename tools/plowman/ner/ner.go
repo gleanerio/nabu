@@ -4,10 +4,10 @@ import (
 	//	"bytes"
 
 	"fmt"
-	"log"
+	log "github.com/sirupsen/logrus"
 	"sync"
 
-	//	"log"
+	//	log "github.com/sirupsen/logrus"
 
 	"github.com/buger/jsonparser"
 	"github.com/gleanerio/gleaner/internal/common"

@@ -2,7 +2,7 @@ package fdpgraph
 
 import (
 	"fmt"
-	"log"
+	log "github.com/sirupsen/logrus"
 	"sync"
 
 	"github.com/gleanerio/gleaner/internal/common"

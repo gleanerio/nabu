@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"context"
 	"github.com/minio/minio-go/v7"
-	"log"
+	log "github.com/sirupsen/logrus"
 )
 
 // PutS3Bytes is used write an object
@@ -17,7 +17,7 @@ func PutS3Bytes(mc *minio.Client, bucketName, objectName, mimeType string, objec
 	n, err := mc.PutObject(context.Background(), bucketName, objectName, bytes.NewReader(object), int64(len(object)), minio.PutObjectOptions{ContentType: mimeType, UserMetadata: usermeta})
 	if err != nil {
 		log.Printf("%s", objectName)
-		log.Fatalln(err)
+		log.Println(err)
 	}
 	log.Printf("Uploaded Bucket:%s File:%s Size %d\n", bucketName, objectName, n)
 

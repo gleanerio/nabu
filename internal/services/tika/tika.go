@@ -3,8 +3,8 @@ package tika
 import (
 	"context"
 	"fmt"
+	log "github.com/sirupsen/logrus"
 	"io"
-	"log"
 	"strings"
 	"sync"
 

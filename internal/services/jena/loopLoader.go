@@ -1,6 +1,7 @@
 package jena
 
 import (
+	"fmt"
 	"github.com/gleanerio/nabu/internal/objects"
 	"github.com/gleanerio/nabu/pkg/config"
 	"github.com/schollz/progressbar/v3"
@@ -12,6 +13,7 @@ import (
 
 // ObjectAssembly collects the objects from a bucket to load
 func ObjectAssembly(v1 *viper.Viper, mc *minio.Client) error {
+	fmt.Println("Jena:ObjectAssembly")
 	bucketName, _ := config.GetBucketName(v1)
 
 	oa, err := objects.GetObjects(v1, mc)

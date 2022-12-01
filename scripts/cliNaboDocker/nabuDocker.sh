@@ -24,16 +24,17 @@ check_cmd_in_path docker
 
 # Set up mounted volumes, environment, and run our containerized command
 # podman needs --privileged to mount /dev/shm
-#exec podman run \
-  #--privileged \
-  #--interactive --tty --rm \
-  #--volume "$PWD":/wd \
-  #--workdir /wd \
-  #"localhost/nsfearthcube/nabu:latest" "$@"
-
-exec docker run \
+exec podman run \
+  --privileged \
+  --network=host \ 
   --interactive --tty --rm \
   --volume "$PWD":/wd \
   --workdir /wd \
-  "fils/nabu:latest" "$@"
+  "localhost/nsfearthcube/nabu:latest" "$@"
+
+#exec docker run \
+  #--interactive --tty --rm \
+  #--volume "$PWD":/wd \
+  #--workdir /wd \
+  #"fils/nabu:latest" "$@"
 
