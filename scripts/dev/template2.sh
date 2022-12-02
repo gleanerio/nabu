@@ -4,13 +4,13 @@ POSITIONAL_ARGS=()
 
 while [[ $# -gt 0 ]]; do
     case $1 in
-        -e|--extension)
-            EXTENSION="$2"
+        -b|--bucket)
+            BUCKET="$2"
             shift # past argument
             shift # past value
         ;;
-        -s|--searchpath)
-            SEARCHPATH="$2"
+        -s|--sparqlurl)
+            SPARQL="$2"
             shift # past argument
             shift # past value
         ;;
@@ -31,7 +31,21 @@ done
 
 set -- "${POSITIONAL_ARGS[@]}" # restore positional parameters
 
-echo "FILE EXTENSION  = ${EXTENSION}"
-echo "SEARCH PATH     = ${SEARCHPATH}"
-echo "DEFAULT         = ${DEFAULT}"
+echo "S3 BUCKET  = ${BUCKET}"
+echo "SPARQL URL = ${SPARQL}"
+echo "DEFAULT    = ${DEFAULT}"
+
+
+mc_cmd() {
+    mc ls $1 | awk '{print $BUCKET}'
+}
+
+# If you use this for ntriples, be sure to compute and/or add in a graph in the URL target
+for i in $(mc_cmd $1); do
+    echo "-------------start-------------"
+    echo Next: $i
+    # mc cat $1/$i | jsonld format -q | curl -X POST -H 'Content-Type:text/x-nquads' --data-binary  @- $2
+    #       mc cat $1/$i | curl -X POST -H 'Content-Type:text/x-nquads' --data-binary  @- $2   #  For nquads source
+    echo "-------------done--------------"
+done
 
