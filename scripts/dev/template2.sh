@@ -35,13 +35,12 @@ echo "S3 BUCKET  = ${BUCKET}"
 echo "SPARQL URL = ${SPARQL}"
 echo "DEFAULT    = ${DEFAULT}"
 
-
 mc_cmd() {
-    mc ls $1 | awk '{print $BUCKET}'
+   mc ls ${BUCKET} | awk '{print $6}'
 }
 
 # If you use this for ntriples, be sure to compute and/or add in a graph in the URL target
-for i in $(mc_cmd $1); do
+for i in $(mc_cmd ${BUCKET}); do
     echo "-------------start-------------"
     echo Next: $i
     # mc cat $1/$i | jsonld format -q | curl -X POST -H 'Content-Type:text/x-nquads' --data-binary  @- $2
