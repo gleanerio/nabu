@@ -5,26 +5,26 @@ POSITIONAL_ARGS=()
 while [[ $# -gt 0 ]]; do
     case $1 in
         -e|--extension)
-        EXTENSION="$2"
-        shift # past argument
-        shift # past value
+            EXTENSION="$2"
+            shift # past argument
+            shift # past value
         ;;
         -s|--searchpath)
-        SEARCHPATH="$2"
-        shift # past argument
-        shift # past value
+            SEARCHPATH="$2"
+            shift # past argument
+            shift # past value
         ;;
         --default)
-        DEFAULT=YES
-        shift # past argument
+            DEFAULT=YES
+            shift # past argument
         ;;
         -*|--*)
-        echo "Unknown option $1"
-        exit 1
+            echo "Unknown option $1"
+            exit 1
         ;;
         *)
-        POSITIONAL_ARGS+=("$1") # save positional arg
-        shift # past argument
+            POSITIONAL_ARGS+=("$1") # save positional arg
+            shift # past argument
         ;;
     esac
 done

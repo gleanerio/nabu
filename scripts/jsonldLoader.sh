@@ -7,15 +7,15 @@
 # curl : should be standard install on most systems
 
 mc_cmd() {
-        mc ls $1 | awk '{print $6}'
+    mc ls $1 | awk '{print $6}'
 }
 
 # If you use this for ntriples, be sure to compute and/or add in a graph in the URL target
 for i in $(mc_cmd $1); do
-        echo "-------------start-------------"
-        echo Next: $i
-        mc cat $1/$i | jsonld format -q | curl -X POST -H 'Content-Type:text/x-nquads' --data-binary  @- $2
-#       mc cat $1/$i | curl -X POST -H 'Content-Type:text/x-nquads' --data-binary  @- $2   #  For nquads source
-        echo "-------------done--------------"
+    echo "-------------start-------------"
+    echo Next: $i
+    mc cat $1/$i | jsonld format -q | curl -X POST -H 'Content-Type:text/x-nquads' --data-binary  @- $2
+    #       mc cat $1/$i | curl -X POST -H 'Content-Type:text/x-nquads' --data-binary  @- $2   #  For nquads source
+    echo "-------------done--------------"
 done
 
