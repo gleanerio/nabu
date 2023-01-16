@@ -13,6 +13,7 @@ func ObjectList(v1 *viper.Viper, mc *minio.Client, prefix string) ([]string, err
 	//objs := v1.GetStringMapString("objects")
 	//objs,_ := config.GetObjectsConfig(v1)
 	bucketName, _ := config.GetBucketName(v1)
+
 	// My go func controller vars
 	semaphoreChan := make(chan struct{}, 1) // a blocking channel to keep concurrency under control (1 == single thread)
 	defer close(semaphoreChan)
@@ -26,7 +27,7 @@ func ObjectList(v1 *viper.Viper, mc *minio.Client, prefix string) ([]string, err
 	oa := []string{}
 
 	// for object := range mc.ListObjectsV2(objs["bucket"], objs["prefix"], isRecursive, doneCh) {
-	//for object := range mc.ListObjects(context.Background(), objs["bucket"],
+	// for object := range mc.ListObjects(context.Background(), objs["bucket"],
 	for object := range mc.ListObjects(context.Background(), bucketName,
 		minio.ListObjectsOptions{Prefix: prefix, Recursive: true}) {
 
@@ -34,13 +35,12 @@ func ObjectList(v1 *viper.Viper, mc *minio.Client, prefix string) ([]string, err
 		go func(object minio.ObjectInfo) {
 			oa = append(oa, object.Key) // WARNING  append is not always thread safe..   wg of 1 till I address this
 			wg.Done()                   // tell the wait group that we be done
-			// log.Printf("Doc: %s error: %v ", name, err) // why print the status??
 			<-semaphoreChan
 		}(object)
 		wg.Wait()
 	}
 
-	//log.Printf("%s:%s object count: %d\n", objs["bucket"], prefix, len(oa))
+	// log.Printf("%s:%s object count: %d\n", objs["bucket"], prefix, len(oa))
 	log.Printf("%s:%s object count: %d\n", bucketName, prefix, len(oa))
 	return oa, nil
 }

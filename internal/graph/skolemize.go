@@ -12,8 +12,13 @@ import (
 
 // Skolemization replaces blank nodes with URIs  The mapping approach is needed since this
 // function can be used on a whole data graph, not just a single triple
-func Skolemization(nq string) (string, error) {
+// reference: https://www.w3.org/TR/rdf11-concepts/#dfn-skolem-iri
+func Skolemization(nq, key string) (string, error) {
 	scanner := bufio.NewScanner(strings.NewReader(nq))
+
+	// need for long lines like in Internet of Water
+	buf := make([]byte, 0, 64*1024)
+	scanner.Buffer(buf, 1024*1024)
 
 	// since a data graph may have several references to any given blank node, we need to keep a
 	// map of our update.  It is also why the ID needs a non content approach since the blank node will
@@ -55,8 +60,10 @@ func Skolemization(nq string) (string, error) {
 	filebytes := []byte(nq)
 
 	for k, v := range m {
-		// fmt.Printf("Replace %s with %v \n", k, v)
-		filebytes = bytes.Replace(filebytes, []byte(k), []byte(v), -1)
+		//fmt.Printf("Replace %s with %v \n", k, v)
+		// The +" " is need since we have to avoid
+		// _:b1 replacing _:b13 with ...3
+		filebytes = bytes.Replace(filebytes, []byte(k+" "), []byte(v+" "), -1)
 	}
 
 	return string(filebytes), err

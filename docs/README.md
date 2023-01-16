@@ -26,7 +26,6 @@ minio:
   secretkey: skey
   bucket: gleaner2
 objects:
-  bucket: gleaner2
   domain: us-east-1
   prefix:
   - milled/iris
@@ -42,8 +41,6 @@ sparql:
   authenticate: false
   username: ""
   password: ""
-txtaipkg:
-  endpoint: http://0.0.0.0:8000
 ```
 
 Commands are like the following:
@@ -54,8 +51,18 @@ nabu --help
 
 The mode "prefix" in Nabu is used for loading a S3 object prefix 
 path into a triplestore
+
+```bash
+nabu --cfg /nabu/wd/nabuconfig.yaml  prune
+
+nabu --cfg /nabu/wd/nabuconfig.yaml  prune --prefix summoned/amgeo
 ```
-nabu prefix --cfg file
+
+```bash
+nabu --cfg ./oihcore_testing.yaml prefix
+
+nabu --cfg ./oihcore_testing.yaml prefix -prefix summoned/amgeo
+
 ```
 eg
 ```

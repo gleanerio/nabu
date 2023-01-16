@@ -6,19 +6,19 @@ minio:
   secretkey: skey
   bucket: gleaner2
 objects:
-  bucket: gleaner2
   domain: us-east-1
   prefix:
-  - milled/iris
-  - prov/iris
-  - org
+    - milled/iris
+    - prov/iris
+    - org
   prefixoff:
-  - summoned/aquadocs
-  - prov/aquadocs
-  - milled/opentopography
-  - prov/opentopography
+    - summoned/aquadocs
+    - prov/aquadocs
+    - milled/opentopography
+    - prov/opentopography
 sparql:
   endpoint: http://localhost/blazegraph/namespace/earthcube/sparql
+  endpointBulk: http://coreos.lan:3030/testing/data
   authenticate: false
   username: ""
   password: ""

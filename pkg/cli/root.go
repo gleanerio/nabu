@@ -135,12 +135,18 @@ func initConfig() {
 	//	viperVal.Set("objects", map[string]string{"bucket": b, "prefix": p})
 	//}
 	if prefixVal != "" {
-		out := viperVal.GetStringMapString("objects")
-		b := out["bucket"]
-		p := prefixVal
+		//out := viperVal.GetStringMapString("objects")
+		//d := out["domain"]
+
+		var p []string
+		p = append(p, prefixVal)
+
+		viperVal.Set("objects.prefix", p)
+
+		//p := prefixVal
 		// r := out["region"]
 		// v1.Set("objects", map[string]string{"bucket": b, "prefix": NEWPREFIX, "region": r})
-		viperVal.Set("objects", map[string]string{"bucket": b, "prefix": p})
+		//viperVal.Set("objects", map[string]string{"domain": d, "prefix": p})
 	}
 
 }

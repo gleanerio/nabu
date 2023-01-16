@@ -7,14 +7,15 @@ FROM alpine
 
 #RUN apk add py-urllib3 openssl certbot curl --no-cache \
 RUN apk add openssl certbot curl --no-cache \
-    --repository http://dl-3.alpinelinux.org/alpine/v3.7/community/ \
-    --repository http://dl-3.alpinelinux.org/alpine/v3.7/main/ \
+    --repository https://dl-3.alpinelinux.org/alpine/v3.7/community/ \
+    --repository https://dl-3.alpinelinux.org/alpine/v3.7/main/ \
     && rm -rf /var/cache/apk/*
 
 # Add in the static elements (could also mount these from local filesystem)
 RUN mkdir /nabu
 RUN mkdir /nabu/config
 ADD ./cmd/nabu/nabu /nabu/
+ADD ./assets /nabu/assets
 
 # ADD ../web/static  /static   # Replace with -v mounting the /web/static directory
 # static is in the .dockerignore..  so an emptry dir is made unless static is removed

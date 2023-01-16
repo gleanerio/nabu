@@ -9,15 +9,14 @@ import (
 )
 
 // checkCmd represents the check command
-var pruneCmd = &cobra.Command{
-	Use:   "prune",
-	Short: "nabu prune command",
+var graphdbCmd = &cobra.Command{
+	Use:   "graphdb",
+	Short: "nabu graphdb command",
 	Long:  `(not implemented)This will read the configs/{cfgPath}/gleaner file, and try to connect to the minio server`,
 	Run: func(cmd *cobra.Command, args []string) {
-		log.Println("Prune call started")
-		err := pkg.Prune(viperVal, mc)
+		err := pkg.GraphDB(viperVal, mc)
 		if err != nil {
-			log.Fatal(err)
+			log.Println(err) // was log.Fatal which seems odd
 			os.Exit(1)
 		}
 		os.Exit(0)
@@ -25,7 +24,7 @@ var pruneCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(pruneCmd)
+	rootCmd.AddCommand(graphdbCmd)
 
 	// Here you will define your flags and configuration settings.
 

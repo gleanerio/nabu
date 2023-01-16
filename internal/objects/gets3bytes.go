@@ -19,7 +19,7 @@ func GetS3Bytes(mc *minio.Client, bucket, object string) ([]byte, string, error)
 
 	oi, err := fo.Stat()
 	if err != nil {
-		log.Println("Issue with reading an object..  should I just fatal on this to make sure?")
+		log.Printf("Issue with reading an object:  %s%s", bucket, object)
 	}
 
 	// resuri := ""
