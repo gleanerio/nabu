@@ -63,7 +63,7 @@ func PipeLoad(v1 *viper.Viper, mc *minio.Client, bucket, object, spql string) ([
 	}
 
 	// drop any graph we are going to load..  we assume we are doing those due to an update...
-	_, err = Drop(v1, g)
+	_, err = graph.Drop(v1, g)
 	if err != nil {
 		log.Error(err)
 	}
@@ -89,7 +89,7 @@ func PipeLoad(v1 *viper.Viper, mc *minio.Client, bucket, object, spql string) ([
 		if lc == 10000 { // use line count, since byte len might break inside a triple statement..   it's an OK proxy
 			log.Trace("Subgraph of %d lines", len(sg))
 			// TODO..  upload what we have here, modify the call code to upload these sections
-			_, err = Insert(g, strings.Join(sg, "\n"), spql, sprql.Username, sprql.Password, sprql.Authenticate) // convert []string to strings joined with new line to form a RDF NT set
+			_, err = graph.Insert(g, strings.Join(sg, "\n"), spql, sprql.Username, sprql.Password, sprql.Authenticate) // convert []string to strings joined with new line to form a RDF NT set
 			if err != nil {
 				log.Error("Insert err: %s", err)
 			}
@@ -99,7 +99,7 @@ func PipeLoad(v1 *viper.Viper, mc *minio.Client, bucket, object, spql string) ([
 	}
 	if lc > 0 {
 		log.Trace("Subgraph (out of scanner) of %d lines", len(sg))
-		_, err = Insert(g, strings.Join(sg, "\n"), spql, sprql.Username, sprql.Password, sprql.Authenticate) // convert []string to strings joined with new line to form a RDF NT set
+		_, err = graph.Insert(g, strings.Join(sg, "\n"), spql, sprql.Username, sprql.Password, sprql.Authenticate) // convert []string to strings joined with new line to form a RDF NT set
 	}
 
 	return []byte("remove me"), err

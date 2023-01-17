@@ -1,4 +1,4 @@
-package objects
+package graph
 
 import (
 	"bytes"

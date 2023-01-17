@@ -68,7 +68,7 @@ func Snip(v1 *viper.Viper, mc *minio.Client) error {
 			bar := progressbar.Default(int64(len(d)))
 			for x := range d {
 				log.Printf("Remove graph: %s\n", d[x])
-				objects.Drop(v1, d[x])
+				graph.Drop(v1, d[x])
 				bar.Add(1)
 			}
 		}
