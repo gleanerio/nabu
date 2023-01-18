@@ -81,9 +81,10 @@ func Snip(v1 *viper.Viper, mc *minio.Client) error {
 
 		if len(m) > 0 {
 			bar2 := progressbar.Default(int64(len(m)))
+			log.Info("uploading missing %n objects", m)
 			for x := range m {
 				np, _ := graph.URNToPrefix(m[x], "summoned", ".jsonld")
-				//fmt.Printf("Add graph: %s  %s \n", m[x], np)
+				log.Tracef("Add graph: %s  %s \n", m[x], np)
 				_, err := objects.PipeLoad(v1, mc, bucketName, np, spql.Endpoint)
 				if err != nil {
 					log.Error("prune -> pipeLoad %v\n", err)
