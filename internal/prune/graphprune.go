@@ -80,7 +80,7 @@ func Snip(v1 *viper.Viper, mc *minio.Client) error {
 		}
 
 		if len(m) > 0 {
-			bar2 := progressbar.Default(int64(len(d)))
+			bar2 := progressbar.Default(int64(len(m)))
 			for x := range m {
 				np, _ := graph.URNToPrefix(m[x], "summoned", ".jsonld")
 				//fmt.Printf("Add graph: %s  %s \n", m[x], np)
