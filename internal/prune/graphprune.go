@@ -63,6 +63,9 @@ func Snip(v1 *viper.Viper, mc *minio.Client) error {
 		fmt.Printf("Graph items: %d  Object items: %d  difference: %d\n", len(ga), len(oag), len(d))
 		fmt.Printf("Missing item count: %d\n", len(m))
 
+		log.WithFields(log.Fields{"prefix": pa[p], "Graph items": len(ga), "Object items": len(oag), "difference": len(d),
+			"Missing item count": len(m)}).Info("Nabu Prune")
+
 		// For each in d will delete that graph
 		if len(d) > 0 {
 			bar := progressbar.Default(int64(len(d)))
@@ -81,7 +84,7 @@ func Snip(v1 *viper.Viper, mc *minio.Client) error {
 
 		if len(m) > 0 {
 			bar2 := progressbar.Default(int64(len(m)))
-			log.Info("uploading missing %n objects", m)
+			log.Info("uploading missing %n objects", len(m))
 			for x := range m {
 				np, _ := graph.URNToPrefix(m[x], "summoned", ".jsonld")
 				log.Tracef("Add graph: %s  %s \n", m[x], np)
