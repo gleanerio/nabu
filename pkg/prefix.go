@@ -16,3 +16,13 @@ func Prefix(v1 *viper.Viper, mc *minio.Client) error {
 	}
 	return err
 }
+
+// used by glcon in gleaner. Need to develop a more common config for the services (aka s3, graph, etc)
+// cannot pass a nabu config to the gleaner code to create a minio client, and have it work
+func NabuPrefix(v1 *viper.Viper) error {
+	mc, err := objects.MinioConnection(v1)
+	if err != nil {
+		log.Fatal("cannot connect to minio: %s", err)
+	}
+	return Prefix(v1, mc)
+}
