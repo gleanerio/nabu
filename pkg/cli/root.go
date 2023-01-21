@@ -121,6 +121,11 @@ func initConfig() {
 		log.Fatal("cannot connect to minio: %s", err)
 	}
 
+	err = common.ConnCheck(mc)
+	if err != nil {
+		log.Fatal("cannot connect to minio: ", err)
+	}
+
 	bucketVal, err = config.GetBucketName(viperVal)
 	if err != nil {
 		log.Fatal("cannot read bucketname from : %s ", err)
