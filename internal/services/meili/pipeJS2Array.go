@@ -1,27 +1,32 @@
-package objects
+package meili
 
 import (
 	"bufio"
 	"bytes"
 	"context"
 	"fmt"
-	"github.com/spf13/viper"
 	"io"
+	"path"
+	"path/filepath"
+	"strings"
 	"sync"
 
-	"github.com/gleanerio/nabu/internal/graph"
 	log "github.com/sirupsen/logrus"
+	"github.com/tidwall/sjson"
 
 	"github.com/minio/minio-go/v7"
 )
 
-// PipeCopy writes a new object based on an prefix, this function assumes the objects are valid when concatenated
+// TODO this function is too specialized (due the ID setting) to be in object
+// it needs to be moved to meili
+
+// ToJSONArray writes a new object based on an prefix it concat to that object
 // name:  name of the NEW object
 // bucket:  source bucket  (and target bucket)
 // prefix:  source prefix
 // mc:  minio client pointer
-func PipeCopy(v1 *viper.Viper, mc *minio.Client, name, bucket, prefix string) error {
-	log.Printf("PipeCopy with name: %s   bucket: %s  prefix: %s", name, bucket, prefix)
+func ToJSONArray(name, bucket, prefix string, mc *minio.Client) error {
+	log.Printf("ToJSONArray with name: %s   bucket: %s  prefix: %s", name, bucket, prefix)
 
 	pr, pw := io.Pipe()     // TeeReader of use?
 	lwg := sync.WaitGroup{} // work group for the pipe writes...
@@ -40,9 +45,15 @@ func PipeCopy(v1 *viper.Viper, mc *minio.Client, name, bucket, prefix string) er
 			}
 		}(pw)
 
+		_, err := pw.Write([]byte("["))
+		if err != nil {
+			return
+		}
+
 		objectCh := mc.ListObjects(context.Background(), bucket, minio.ListObjectsOptions{Prefix: prefix, Recursive: isRecursive})
 
 		// for object := range mc.ListObjects(context.Background(), bucket, minio.ListObjectsOptions{Prefix: prefix, Recursive: isRecursive}, doneCh) {
+		first := true
 		for object := range objectCh {
 			fo, err := mc.GetObject(context.Background(), bucket, object.Key, minio.GetObjectOptions{})
 			if err != nil {
@@ -57,40 +68,52 @@ func PipeCopy(v1 *viper.Viper, mc *minio.Client, name, bucket, prefix string) er
 				log.Println(err)
 			}
 
+			// Meili start  this could be an external "mod" function
+			// Build ID entry to support meilie and since this ID is used only to associate a record back to the graph
 			s := string(b.Bytes())
 
-			//log.Println("Calling JSONLDtoNQ")
-			nq, err := graph.JSONLDToNQ(v1, s)
+			fp := filepath.Base(object.Key)
+			nns := strings.TrimSuffix(fp, path.Ext(fp))
+
+			fv, err := sjson.Set(s, "@id", nns)
 			if err != nil {
 				log.Println(err)
-				return
+			}
+			fv2, err := sjson.Set(fv, "id", nns)
+			if err != nil {
+				log.Println(err)
+			}
+			// Meili end
+
+			// Do not want a "," at the end of the last element, so write it prior to the record and skip the first record
+			if first {
+				first = false
+			} else {
+				_, err = pw.Write([]byte(","))
+				if err != nil {
+					return
+				}
 			}
 
-			// TODO add the context into this fle  (then load to Jena withouth explicate graph)
-			// g = fmt.Sprintf("urn:%s:%s", bucketName, strings.TrimSuffix(s2c, ".rdf"))
-			// func NQNewGraph(inquads, newctx string) (string, string, error) {
-
-			//log.Println("Calling Skolemization")
-			snq, err := graph.Skolemization(nq, object.Key)
+			//_, err = pw.Write(b.Bytes())
+			_, err = pw.Write([]byte(fv2))
 			if err != nil {
 				return
 			}
 
-			_, err = pw.Write([]byte(snq))
-			if err != nil {
-				return
-			}
+		}
+
+		_, err = pw.Write([]byte("]"))
+		if err != nil {
+			return
 		}
 
 	}()
 
-	log.Printf("Bulkfile name: %s_graph.nq", name)
-
 	// go function to write to minio from pipe
 	go func() {
 		defer lwg.Done()
-		_, err := mc.PutObject(context.Background(), bucket, fmt.Sprintf("%s/%s", "scratch", name), pr, -1, minio.PutObjectOptions{})
-		//_, err := mc.PutObject(context.Background(), bucket, fmt.Sprintf("%s/%s", prefix, name), pr, -1, minio.PutObjectOptions{})
+		_, err := mc.PutObject(context.Background(), bucket, fmt.Sprintf("%s/%s", prefix, name), pr, -1, minio.PutObjectOptions{})
 		if err != nil {
 			log.Println(err)
 			return

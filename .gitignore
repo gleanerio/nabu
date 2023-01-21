@@ -4,3 +4,4 @@ logs/**
 /cmd/nabu/nabu
 **/*.log
 **/.idea/**
+**/.fleet/**

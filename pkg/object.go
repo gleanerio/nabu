@@ -3,7 +3,6 @@ package pkg
 import (
 	"fmt"
 	"github.com/gleanerio/nabu/internal/objects"
-	"github.com/gleanerio/nabu/internal/sparqlapi"
 	"github.com/gleanerio/nabu/pkg/config"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
@@ -18,15 +17,14 @@ func NabuObject(v1 *viper.Viper, bucket string, object string) error {
 	}
 	return Object(v1, mc, bucket, object)
 }
+
 func Object(v1 *viper.Viper, mc *minio.Client, bucket string, object string) error {
 	fmt.Println("Load graph object to triplestore")
-	//spql := v1.GetStringMapString("sparql")
 	spql, _ := config.GetSparqlConfig(v1)
 	if bucket == "" {
 		bucket, _ = config.GetBucketName(v1)
 	}
-	//s, err := sparqlapi.PipeLoad(v1, mc, bucket, object, spql["endpoint"])
-	s, err := sparqlapi.PipeLoad(v1, mc, bucket, object, spql.Endpoint)
+	s, err := objects.PipeLoad(v1, mc, bucket, object, spql.Endpoint)
 	if err != nil {
 		log.Error(err)
 	}

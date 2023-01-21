@@ -7,6 +7,7 @@ import (
 
 type Sparql struct {
 	Endpoint     string
+	EndpointBulk string
 	Authenticate bool
 	Username     string
 	Password     string
@@ -14,7 +15,8 @@ type Sparql struct {
 
 var sparqlTemplate = map[string]interface{}{
 	"sparql": map[string]string{
-		"endpoint":     "http://localhost/blazegraph/namespace/nabu/sparql",
+		"endpoint":     "http://coreos.lan:3030/testing/sparql",
+		"endpointBulk": "http://coreos.lan:3030/testing/data",
 		"authenticate": "False",
 		"username":     "",
 		"password":     "",
@@ -32,6 +34,7 @@ func ReadSparqlConfig(viperSubtree *viper.Viper) (Sparql, error) {
 		viperSubtree.SetDefault(key, value)
 	}
 	viperSubtree.BindEnv("endpoint", "SPARQL_ENDPOINT")
+	viperSubtree.BindEnv("endpointBulk", "SPARQL_ENDPOINTBULK")
 	viperSubtree.BindEnv("authenticate", "SPARQL_AUTHENTICATE")
 	viperSubtree.BindEnv("username", "SPARQL_USERNAME")
 	viperSubtree.BindEnv("password", "SPARQL_PASSWORD")

@@ -8,7 +8,7 @@ import (
 )
 
 // PutS3Bytes is used write an object
-func PutS3Bytes(mc *minio.Client, bucketName, objectName, mimeType string, object []byte) (int, error) {
+func putS3Bytes(mc *minio.Client, bucketName, objectName, mimeType string, object []byte) (int, error) {
 	usermeta := make(map[string]string) // what do I want to know?
 	usermeta["url"] = "urlloc"
 	usermeta["sha1"] = "bss"
@@ -19,7 +19,7 @@ func PutS3Bytes(mc *minio.Client, bucketName, objectName, mimeType string, objec
 		log.Printf("%s", objectName)
 		log.Println(err)
 	}
-	log.Printf("Uploaded Bucket:%s File:%s Size %d\n", bucketName, objectName, n)
+	log.Printf("Uploaded Bucket:%s File:%s Size %d\n", bucketName, objectName, n.Size)
 
-	return 0, nil
+	return int(n.Size), nil // TODO return in64 rather than cast
 }
