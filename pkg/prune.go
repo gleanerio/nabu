@@ -1,6 +1,7 @@
 package pkg
 
 import (
+	"github.com/gleanerio/nabu/internal/objects"
 	"github.com/gleanerio/nabu/internal/prune"
 	"github.com/minio/minio-go/v7"
 	log "github.com/sirupsen/logrus"
@@ -14,4 +15,14 @@ func Prune(v1 *viper.Viper, mc *minio.Client) error {
 		log.Error(err)
 	}
 	return err
+}
+
+// used by glcon in gleaner. Need to develop a more common config for the services (aka s3, graph, etc)
+// cannot pass a nabu config to the gleaner code to create a minio client, and have it work
+func NabuPrune(v1 *viper.Viper) error {
+	mc, err := objects.MinioConnection(v1)
+	if err != nil {
+		log.Fatal("cannot connect to minio: %s", err)
+	}
+	return Prune(v1, mc)
 }
