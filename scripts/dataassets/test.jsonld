@@ -1,0 +1,60 @@
+
+{
+    "@context": {
+        "@vocab": "https://schema.org/"
+    },
+    "@type": "Dataset",
+    "name": "Abundance and biomass of benthic infauna as part of the North Channel habitat mapping project, 2017",
+    "description": "This dataset contains information on infaunal abundance and biomass from sediment grabs in North Channel as part of a larger, more comprehensive habitat mapping project. This survey was carried out over two days in 2017 by the Agri-Food &amp; Biosciences Institute (AFBI) on the RV Corystes. A 0.1m2 Day Grab was used to collect the sediment samples. Particle size analysis (PSA) and Carbon &amp; Nitrogen analysis were carried out. The infaunal samples were sent away to accredited taxonomic laboratories to be identified and weighed. There were many commercially and biologically important species found in the samples for example Modiolus modiolus (Northern Ireland priority species) and a few non-native species such as Goniadella gracilis. There were also a few records of species that are not formally recorded in the UK e.g. Syllis licheri. The most abundant species recorded was the polychaete Sabellaria spinulosa. The polychaete species Syllis armillaris was present in all 12 samples taken.",
+    "url": "https://obis.org/dataset/c86e4868-b60e-4d27-900b-cb79c57ff14d",
+    "sameAs": [
+        "http://ipt.vliz.be/eurobis/resource?r=dasshdt00000410",
+        "https://doi.org/10.17031/ijdo70"
+    ],
+    "license": "This work is licensed under a  Creative Commons Attribution (CC-BY) 4.0 License",
+    "citation": "Agri-Food and Biosciences Institute (AFBI) (2019): Abundance and biomass of benthic infauna as part of the North Channel habitat mapping project, 2017. v2.4. Marine Biological Association. Dataset/Samplingevent https://doi.org/10.17031/ijdo70",
+    "version": "2021-07-19T13:14:20.000Z",
+    "keywords": [
+        "Samplingevent"
+    ],
+    "variableMeasured": [],
+    "includedInDataCatalog": {
+        "@id": "https://obis.org",
+        "@type": "DataCatalog",
+        "url": "https://obis.org"
+    },
+    "temporalCoverage": "2017/2017",
+    "identifier": {
+        "@id": "https://doi.org/10.17031/ijdo70",
+        "@type": "PropertyValue",
+        "propertyID": "https://registry.identifiers.org/registry/doi",
+        "value": "doi:10.17031/ijdo70",
+        "url": "https://doi.org/10.17031/ijdo70"
+    },
+    "distribution": {
+        "@type": "DataDownload",
+        "contentUrl": "http://ipt.vliz.be/eurobis/archive.do?r=dasshdt00000410",
+        "encodingFormat": "application/zip"
+    },
+    "spatialCoverage": {
+        "@type": "Place",
+        "geo": {
+            "@type": "GeoShape",
+            "polygon": "-5.787 55.02345,-5.787 55.11305,-5.662216666667 55.11305,-5.662216666667 55.02345,-5.787 55.02345"
+        },
+        "additionalProperty": {
+            "@type": "PropertyValue",
+            "propertyID": "http://dbpedia.org/resource/Spatial_reference_system",
+            "value": "http://www.w3.org/2003/01/geo/wgs84_pos#lat_long"
+        }
+    },
+    "provider": [
+        {
+            "@id": "https://oceanexpert.org/institution/6223",
+            "@type": "Organization",
+            "legalName": "Vlaams Instituut voor de Zee",
+            "name": "Vlaams Instituut voor de Zee",
+            "url": "https://oceanexpert.org/institution/6223"
+        }
+    ]
+}

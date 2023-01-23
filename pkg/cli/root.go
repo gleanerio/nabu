@@ -1,15 +1,17 @@
 package cli
 
 import (
-	"github.com/gleanerio/nabu/internal/objects"
-	"github.com/gleanerio/nabu/pkg/config"
-	"github.com/minio/minio-go/v7"
-	"github.com/spf13/cobra"
-	"log"
+	"github.com/gleanerio/nabu/internal/common"
+	log "github.com/sirupsen/logrus"
 	"mime"
 	"os"
 	"path"
 	"path/filepath"
+
+	"github.com/gleanerio/nabu/internal/objects"
+	"github.com/gleanerio/nabu/pkg/config"
+	"github.com/minio/minio-go/v7"
+	"github.com/spf13/cobra"
 
 	"github.com/spf13/viper"
 )
@@ -35,16 +37,27 @@ var rootCmd = &cobra.Command{
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
-
 	cobra.CheckErr(rootCmd.Execute())
 }
 
 func init() {
-	log.SetFlags(log.Lshortfile)
+	//LOG_FILE := "nabu.log" // log to custom file
+	//logFile, err := os.OpenFile(LOG_FILE, os.O_APPEND|os.O_RDWR|os.O_CREATE, 0644)
+	//if err != nil {
+	//log.Panic(err)
+	//return
+	//}
+	////defer logFile.Close()
+
+	//log.SetOutput(logFile) // Set log out put and enjoy :)
+
+	//log.SetFlags(log.Lshortfile | log.LstdFlags) // optional: log date-time, filename, and line number
+	//log.Println("Logging to custom file")
+	//log.Println("EarthCube Nabu")
+	common.InitLogging()
 
 	mime.AddExtensionType(".jsonld", "application/ld+json")
 
-	log.Println("EarthCube Nabu")
 	akey := os.Getenv("MINIO_ACCESS_KEY")
 	skey := os.Getenv("MINIO_SECRET_KEY")
 	cobra.OnInitialize(initConfig)
@@ -103,19 +116,6 @@ func initConfig() {
 
 	// If a config file is found, read it in.
 
-	// Set up some logging approaches
-	f, err := os.OpenFile("naburun.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
-	if err != nil {
-		log.Fatalf("error opening file: %v", err)
-	}
-	defer f.Close()
-
-	log.SetOutput(f)
-	log.SetFlags(log.Lshortfile)
-	// log.SetOutput(ioutil.Discard) // turn off all logging
-	//wrt := io.MultiWriter(os.Stdout, f)
-	//log.SetOutput(wrt)
-
 	mc, err = objects.MinioConnection(viperVal)
 	if err != nil {
 		log.Fatal("cannot connect to minio: %s", err)
@@ -123,7 +123,7 @@ func initConfig() {
 
 	bucketVal, err = config.GetBucketName(viperVal)
 	if err != nil {
-		log.Println("cannot read bucketname from : %s ", err)
+		log.Fatal("cannot read bucketname from : %s ", err)
 	}
 	// Override prefix in config if flag set
 	//if isFlagPassed("prefix") {

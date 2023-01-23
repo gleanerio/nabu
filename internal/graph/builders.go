@@ -3,7 +3,7 @@ package graph
 import (
 	"bytes"
 	"fmt"
-	"log"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/knakk/rdf"
 )

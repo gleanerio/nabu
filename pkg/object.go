@@ -2,11 +2,11 @@ package pkg
 
 import (
 	"fmt"
-	"github.com/gleanerio/nabu/internal/flows"
 	"github.com/gleanerio/nabu/internal/objects"
+	"github.com/gleanerio/nabu/internal/sparqlapi"
 	"github.com/gleanerio/nabu/pkg/config"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
-	"log"
 
 	"github.com/minio/minio-go/v7"
 )
@@ -25,11 +25,11 @@ func Object(v1 *viper.Viper, mc *minio.Client, bucket string, object string) err
 	if bucket == "" {
 		bucket, _ = config.GetBucketName(v1)
 	}
-	//s, err := flows.PipeLoad(v1, mc, bucket, object, spql["endpoint"])
-	s, err := flows.PipeLoad(v1, mc, bucket, object, spql.Endpoint)
+	//s, err := sparqlapi.PipeLoad(v1, mc, bucket, object, spql["endpoint"])
+	s, err := sparqlapi.PipeLoad(v1, mc, bucket, object, spql.Endpoint)
 	if err != nil {
-		log.Println(err)
+		log.Error(err)
 	}
-	log.Println(string(s))
+	log.Trace(string(s))
 	return err
 }
