@@ -1,0 +1,36 @@
+sparql:
+  endpoint: https://graph.geocodes-1.earthcube.org/blazegraph/namespace/df_testing/sparql
+minio:
+  bucket: gleaner-wf
+  address: oss.geocodes-dev.earthcube.org
+  port: 443
+  accesskey: worldsbestaccesskey
+  secretkey: worldsbestsecretkey
+  ssl: true
+objects:
+  domain: us-east-1
+  prefix:
+    - summoned/aquadocs
+    - summoned/bcodmo
+    - summoned/cchdo
+    - summoned/earthchem
+    - summoned/edi
+    - summoned/hydroshare
+    - summoned/linkedearth
+    - summoned/magic
+    - summoned/opentopography
+    - summoned/r2r
+    - summoned/ssdbiodp
+    - summoned/unavco
+    - prov/aquadocs
+    - prov/bcodmo
+    - prov/cchdo
+    - prov/earthchem
+    - prov/edi
+    - prov/hydroshare
+    - prov/linkedearth
+    - prov/magic
+    - prov/opentopography
+    - prov/r2r
+    - prov/ssdbiodp
+    - prov/unavco
