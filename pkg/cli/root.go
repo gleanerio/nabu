@@ -124,7 +124,7 @@ func initConfig() {
 
 	err = common.ConnCheck(mc)
 	if err != nil {
-		err = errors.New(err.Error() + fmt.Sprintf("connection info: endpoint: %v ", mc.EndpointURL()))
+		err = errors.New(err.Error() + fmt.Sprintf(" Ignore that. It's not the bucket. check config/minio: address, port, ssl. connection info: endpoint: %v ", mc.EndpointURL()))
 		log.Fatal("cannot connect to minio: ", err)
 	}
 
