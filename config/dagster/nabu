@@ -6,7 +6,7 @@ minio:
   port: 443
   accesskey: worldsbestaccesskey
   secretkey: worldsbestsecretkey
-  ssl: true
+#  ssl: true
 objects:
   domain: us-east-1
   prefix:

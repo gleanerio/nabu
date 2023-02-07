@@ -1,17 +1,18 @@
 package cli
 
 import (
+	"errors"
+	"fmt"
 	"github.com/gleanerio/nabu/internal/common"
+	"github.com/gleanerio/nabu/internal/objects"
+	"github.com/gleanerio/nabu/pkg/config"
+	"github.com/minio/minio-go/v7"
 	log "github.com/sirupsen/logrus"
+	"github.com/spf13/cobra"
 	"mime"
 	"os"
 	"path"
 	"path/filepath"
-
-	"github.com/gleanerio/nabu/internal/objects"
-	"github.com/gleanerio/nabu/pkg/config"
-	"github.com/minio/minio-go/v7"
-	"github.com/spf13/cobra"
 
 	"github.com/spf13/viper"
 )
@@ -123,6 +124,7 @@ func initConfig() {
 
 	err = common.ConnCheck(mc)
 	if err != nil {
+		err = errors.New(err.Error() + fmt.Sprintf("connection info: endpoint: %v ", mc.EndpointURL()))
 		log.Fatal("cannot connect to minio: ", err)
 	}
 
