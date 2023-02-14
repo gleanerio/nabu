@@ -20,7 +20,7 @@ import (
 // bucket:  source bucket  (and target bucket)
 // prefix:  source prefix
 // mc:  minio client pointer
-func PipeCopy(v1 *viper.Viper, mc *minio.Client, name, bucket, prefix string) error {
+func PipeCopy(v1 *viper.Viper, mc *minio.Client, name, bucket, prefix, destprefix string) error {
 	log.Printf("PipeCopy with name: %s   bucket: %s  prefix: %s", name, bucket, prefix)
 
 	pr, pw := io.Pipe()     // TeeReader of use?
@@ -66,7 +66,7 @@ func PipeCopy(v1 *viper.Viper, mc *minio.Client, name, bucket, prefix string) er
 				return
 			}
 
-			// TODO add the context into this fle  (then load to Jena withouth explicate graph)
+			// TODO add the context into this fle  (then load to Jena without explicate graph)
 			// g = fmt.Sprintf("urn:%s:%s", bucketName, strings.TrimSuffix(s2c, ".rdf"))
 			// func NQNewGraph(inquads, newctx string) (string, string, error) {
 
@@ -89,7 +89,7 @@ func PipeCopy(v1 *viper.Viper, mc *minio.Client, name, bucket, prefix string) er
 	// go function to write to minio from pipe
 	go func() {
 		defer lwg.Done()
-		_, err := mc.PutObject(context.Background(), bucket, fmt.Sprintf("%s/%s", "scratch", name), pr, -1, minio.PutObjectOptions{})
+		_, err := mc.PutObject(context.Background(), bucket, fmt.Sprintf("%s/%s", destprefix, name), pr, -1, minio.PutObjectOptions{})
 		//_, err := mc.PutObject(context.Background(), bucket, fmt.Sprintf("%s/%s", prefix, name), pr, -1, minio.PutObjectOptions{})
 		if err != nil {
 			log.Println(err)
