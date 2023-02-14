@@ -32,7 +32,9 @@ func BulkRelease(v1 *viper.Viper, mc *minio.Client) error {
 
 	for o := range ol {
 		for p := range pa {
-			if strings.Contains(ol[o], baseName(path.Base(pa[p]))) {
+			sp := strings.Split(pa[p], "/")
+			spj := strings.Join(sp, "")
+			if strings.Contains(ol[o], baseName(path.Base(spj))) {
 				// move the match from graphs/latest to graphs/archive
 				fmt.Println(ol[o])
 				// copy it and change the prefix path from "latest" to "archive"
@@ -52,13 +54,13 @@ func BulkRelease(v1 *viper.Viper, mc *minio.Client) error {
 	}
 
 	for p := range pa {
+		sp := strings.Split(pa[p], "/")
+		spj := strings.Join(sp, "")
 		const layout = "2006-01-02-15-04-05"
 		t := time.Now()
-		name := fmt.Sprintf("%s_%s_release.rdf", baseName(path.Base(pa[p])), t.Format(layout))
+		name := fmt.Sprintf("%s_%s_release.rdf", baseName(path.Base(spj)), t.Format(layout))
 
 		err = objects.PipeCopy(v1, mc, name, bucketName, pa[p], "graphs/latest") // have this function return the object name and path, easy to load and remove then
-		//err = objects.MillerNG(name, bucketName, pa[p], mc) // have this function return the object name and path, easy to load and remove then
-
 		if err != nil {
 			return err
 		}
