@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-// URNToPrefix concert a urn string to a valid prefix
+// URNToPrefix convert  urn string to a valid s3 prefix
 // So urn:gleaner.oih:edmo:00032788b3d1eecf4257bd8ffd42c5d56761a6bf
 // becomes gleaner.oih/[summoned]/edmo/00032788b3d1eecf4257bd8ffd42c5d56761a6bf.jsonld
 func URNToPrefix(urn, pathelement, suffix string) (string, error) {

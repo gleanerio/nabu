@@ -6,8 +6,6 @@ nabu:
 	cd cmd/nabu; \
 	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 env go build -o nabu
 
-releases: nabu
-
 docker:
 	podman build  --tag="fils/nabu:$(VERSION)"  --file=./build/Dockerfile .
 
@@ -19,3 +17,5 @@ publish:
 	docker tag fils/nabu:$(VERSION) fils/nabu:latest
 	docker push fils/nabu:$(VERSION) ; \
 	docker push fils/nabu:latest
+
+releases: nabu docker dockerpush publish

@@ -2,12 +2,14 @@ package releases
 
 import (
 	"fmt"
+
 	log "github.com/sirupsen/logrus"
 
-	"github.com/gleanerio/nabu/internal/prune"
 	"path"
 	"strings"
 	"time"
+
+	"github.com/gleanerio/nabu/internal/prune"
 
 	"github.com/gleanerio/nabu/internal/objects"
 	"github.com/gleanerio/nabu/pkg/config"
@@ -53,14 +55,21 @@ func BulkRelease(v1 *viper.Viper, mc *minio.Client) error {
 		}
 	}
 
+	// Set and use a "single file flag" to bypass skolimaization since if it is a single file
+	// the JSON-LD to RDF will correctly map blank nodes.
+	sf := true
+	if len(pa) > 1 {
+		sf = false
+	}
+
 	for p := range pa {
 		sp := strings.Split(pa[p], "/")
 		spj := strings.Join(sp, "")
 		const layout = "2006-01-02-15-04-05"
 		t := time.Now()
-		name := fmt.Sprintf("%s_%s_release.rdf", baseName(path.Base(spj)), t.Format(layout))
+		name := fmt.Sprintf("%s_%s_release.nq", baseName(path.Base(spj)), t.Format(layout))
 
-		err = objects.PipeCopy(v1, mc, name, bucketName, pa[p], "graphs/latest") // have this function return the object name and path, easy to load and remove then
+		err = objects.PipeCopy(v1, mc, name, bucketName, pa[p], "graphs/latest", sf) // have this function return the object name and path, easy to load and remove then
 		if err != nil {
 			return err
 		}

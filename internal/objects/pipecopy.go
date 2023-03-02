@@ -5,9 +5,10 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"github.com/spf13/viper"
 	"io"
 	"sync"
+
+	"github.com/spf13/viper"
 
 	"github.com/gleanerio/nabu/internal/graph"
 	log "github.com/sirupsen/logrus"
@@ -16,11 +17,14 @@ import (
 )
 
 // PipeCopy writes a new object based on an prefix, this function assumes the objects are valid when concatenated
+// v1:  viper config object
+// mc:  minio client pointer
 // name:  name of the NEW object
 // bucket:  source bucket  (and target bucket)
 // prefix:  source prefix
-// mc:  minio client pointer
-func PipeCopy(v1 *viper.Viper, mc *minio.Client, name, bucket, prefix, destprefix string) error {
+// destprefix:   destination prefix
+// sf: boolean to declare if single file or not.   If so, skip skolimization since JSON-LD library output is enough
+func PipeCopy(v1 *viper.Viper, mc *minio.Client, name, bucket, prefix, destprefix string, sf bool) error {
 	log.Printf("PipeCopy with name: %s   bucket: %s  prefix: %s", name, bucket, prefix)
 
 	pr, pw := io.Pipe()     // TeeReader of use?
@@ -31,6 +35,8 @@ func PipeCopy(v1 *viper.Viper, mc *minio.Client, name, bucket, prefix, destprefi
 	doneCh := make(chan struct{}) // , N) Create a done channel to control 'ListObjectsV2' go routine.
 	defer close(doneCh)           // Indicate to our routine to exit cleanly upon return.
 	isRecursive := true
+
+	//log.Printf("Bulkfile name: %s_graph.nq", name)
 
 	go func() {
 		defer lwg.Done()
@@ -66,25 +72,34 @@ func PipeCopy(v1 *viper.Viper, mc *minio.Client, name, bucket, prefix, destprefi
 				return
 			}
 
-			// TODO add the context into this fle  (then load to Jena without explicate graph)
-			// g = fmt.Sprintf("urn:%s:%s", bucketName, strings.TrimSuffix(s2c, ".rdf"))
-			// func NQNewGraph(inquads, newctx string) (string, string, error) {
+			var snq string
 
-			//log.Println("Calling Skolemization")
-			snq, err := graph.Skolemization(nq, object.Key)
+			if sf {
+				snq = nq //  just pass through the RDF without trying to Skolemize since we ar a single fil
+			} else {
+				snq, err = graph.Skolemization(nq, object.Key)
+				if err != nil {
+					return
+				}
+			}
+
+			// 1) get graph URI
+			ctx, err := graph.MakeURN(object.Key, bucket)
+			if err != nil {
+				return
+			}
+			// 2) convert NT to NQ
+			csnq, err := graph.NtToNq(snq, ctx)
 			if err != nil {
 				return
 			}
 
-			_, err = pw.Write([]byte(snq))
+			_, err = pw.Write([]byte(csnq))
 			if err != nil {
 				return
 			}
 		}
-
 	}()
-
-	log.Printf("Bulkfile name: %s_graph.nq", name)
 
 	// go function to write to minio from pipe
 	go func() {

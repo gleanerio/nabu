@@ -20,40 +20,37 @@ func JLDProc(v1 *viper.Viper) (*ld.JsonLdProcessor, *ld.JsonLdOptions) {
 	proc := ld.NewJsonLdProcessor()
 	options := ld.NewJsonLdOptions("")
 
-	//spql, _ := config.GetSparqlConfig(v1)
-	// cntxmap, _ := config.GetContextMapConfig(v1)
-	// TODO, modled after above, need a "contextmap:" in the config file
-	// with several KV pairs like
-	//	contextmap:
-	//		- key: https://schema.org/
-	//		  value: ./assets/schemaorg-current-https.jsonld
-	//		- key: http://schema.org/
-	//		  value: ./assets/schemaorg-current-http.jsonld
+	mcfg := v1.GetStringMapString("context")
 
-	client := &http.Client{}
-	nl := ld.NewDefaultDocumentLoader(client)
+	if mcfg["cache"] == "true" {
+		client := &http.Client{}
+		nl := ld.NewDefaultDocumentLoader(client)
 
-	m := make(map[string]string)
+		var s []ContextMapping
+		err := v1.UnmarshalKey("contextmaps", &s)
+		if err != nil {
+			log.Error(err)
+		}
 
-	// remove the hardcoded location (see TODO above)
-	f := "./assets/schemaorg-current-http.jsonld"
-	if fileExists(f) {
-		m["http://schema.org/"] = f
-	} else {
-		log.Printf("Could not find: %s", f)
+		m := make(map[string]string)
+
+		for i := range s {
+			if fileExists(s[i].File) {
+				m[s[i].Prefix] = s[i].File
+
+			} else {
+				log.Error("ERROR: context file location ", s[i].File, " is wrong, this is a critical error")
+			}
+		}
+
+		// Read mapping from config file
+		cdl := ld.NewCachingDocumentLoader(nl)
+		err = cdl.PreloadWithMapping(m)
+		if err != nil {
+			return nil, nil
+		}
+		options.DocumentLoader = cdl
 	}
-
-	f = "./assets/schemaorg-current-https.jsonld"
-	if fileExists(f) {
-		m["https://schema.org/"] = f
-	} else {
-		log.Printf("Could not find: %s", f)
-	}
-
-	// Read mapping from config file
-	cdl := ld.NewCachingDocumentLoader(nl)
-	cdl.PreloadWithMapping(m)
-	options.DocumentLoader = cdl
 
 	options.ProcessingMode = ld.JsonLd_1_1 // add mode explicitly if you need JSON-LD 1.1 features
 	options.Format = "application/nquads"  // Set to a default format. (make an option?)

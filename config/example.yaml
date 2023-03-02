@@ -5,6 +5,14 @@ minio:
   accesskey: akey
   secretkey: skey
   bucket: gleaner2
+context:
+  cache: true
+  strict: true
+contextmaps:
+  - prefix: "https://schema.org/"
+    file: "./assets/schemaorg-current-https.jsonld"  # wget http://schema.org/docs/jsonldcontext.jsonld
+  - prefix: "http://schema.org/"
+    file: "./assets/schemaorg-current-http.jsonld"  # wget http://schema.org/docs/jsonldcontext.jsonld
 objects:
   domain: us-east-1
   prefix:
