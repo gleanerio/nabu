@@ -4,10 +4,11 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/gleanerio/nabu/pkg/config"
 	"io"
 	"net/http"
 	"strings"
+
+	"github.com/gleanerio/nabu/pkg/config"
 
 	"github.com/gleanerio/nabu/internal/graph"
 
@@ -18,6 +19,8 @@ import (
 	"github.com/minio/minio-go/v7"
 )
 
+// docfunc needs to be renamed to something like BulkUpate and made exported
+// This functions could be used to load stored release graphs to the graph database
 func docfunc(v1 *viper.Viper, mc *minio.Client, bucketName string, item string) (string, error) {
 	spql, err := config.GetSparqlConfig(v1)
 	if err != nil {
@@ -44,7 +47,7 @@ func docfunc(v1 *viper.Viper, mc *minio.Client, bucketName string, item string) 
 	// All the triples in the bulk file to then load as triples + general context (graph)
 	// Review if this graph g should b here since we are loading quads
 	// I don't think it should b.   validate with all the tested triple stores
-	bn := strings.Replace(bucketName, ".", ":", -1) //why is this here?
+	bn := strings.Replace(bucketName, ".", ":", -1) // convert to urn : values, buckets with . are not valid IRIs
 	g, err := graph.MakeURN(item, bn)
 	if err != nil {
 		log.Error("gets3Bytes %v\n", err)

@@ -23,15 +23,9 @@ func BulkAssembly(v1 *viper.Viper, mc *minio.Client) error {
 
 	var err error
 
-	// Set "single file flag" to bypass skolemization, if is a single file the JSON-LD to RDF will correctly map blank nodes.
-	sf := true
-	if len(pa) > 1 {
-		sf = false
-	}
-
 	for p := range pa {
 		name := fmt.Sprintf("%s_bulk.rdf", baseName(path.Base(pa[p])))
-		err = objects.PipeCopy(v1, mc, name, bucketName, pa[p], "scratch", sf) // have this function return the object name and path, easy to load and remove then
+		err = objects.PipeCopy(v1, mc, name, bucketName, pa[p], "scratch") // have this function return the object name and path, easy to load and remove then
 		//err = objects.MillerNG(name, bucketName, pa[p], mc) // have this function return the object name and path, easy to load and remove then
 		if err != nil {
 			return err

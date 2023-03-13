@@ -24,7 +24,7 @@ import (
 // prefix:  source prefix
 // destprefix:   destination prefix
 // sf: boolean to declare if single file or not.   If so, skip skolimization since JSON-LD library output is enough
-func PipeCopy(v1 *viper.Viper, mc *minio.Client, name, bucket, prefix, destprefix string, sf bool) error {
+func PipeCopy(v1 *viper.Viper, mc *minio.Client, name, bucket, prefix, destprefix string) error {
 	log.Printf("PipeCopy with name: %s   bucket: %s  prefix: %s", name, bucket, prefix)
 
 	pr, pw := io.Pipe()     // TeeReader of use?
@@ -45,6 +45,24 @@ func PipeCopy(v1 *viper.Viper, mc *minio.Client, name, bucket, prefix, destprefi
 			if err != nil {
 			}
 		}(pw)
+
+		// Set and use a "single file flag" to bypass skolimaization since if it is a single file
+		// the JSON-LD to RDF will correctly map blank nodes.
+		// NOTE:  with a background context we can't get the len(channel) so we have to iterate it.
+		// This is fast, but it means we have to do the ListObjects twice
+		clen := 0
+		sf := false
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+		lenCh := mc.ListObjects(ctx, bucket, minio.ListObjectsOptions{Prefix: prefix, Recursive: isRecursive})
+		for _ = range lenCh {
+			clen = clen + 1
+		}
+		if clen == 1 {
+			sf = true
+		}
+		log.Printf("\nChannel/object length: %d\n", clen)
+		log.Printf("Single file mode set: %t", sf)
 
 		objectCh := mc.ListObjects(context.Background(), bucket, minio.ListObjectsOptions{Prefix: prefix, Recursive: isRecursive})
 
