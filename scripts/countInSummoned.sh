@@ -64,5 +64,3 @@ done
 echo -e "${total} \t total"
 
 
-
-

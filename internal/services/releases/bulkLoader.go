@@ -2,12 +2,14 @@ package releases
 
 import (
 	"fmt"
+
 	log "github.com/sirupsen/logrus"
 
-	"github.com/gleanerio/nabu/internal/prune"
 	"path"
 	"strings"
 	"time"
+
+	"github.com/gleanerio/nabu/internal/prune"
 
 	"github.com/gleanerio/nabu/internal/objects"
 	"github.com/gleanerio/nabu/pkg/config"
@@ -30,6 +32,7 @@ func BulkRelease(v1 *viper.Viper, mc *minio.Client) error {
 		return err
 	}
 
+	// Let's move the current bulk graph to archive and clear the way for a new release graph
 	for o := range ol {
 		for p := range pa {
 			sp := strings.Split(pa[p], "/")
@@ -58,7 +61,7 @@ func BulkRelease(v1 *viper.Viper, mc *minio.Client) error {
 		spj := strings.Join(sp, "")
 		const layout = "2006-01-02-15-04-05"
 		t := time.Now()
-		name := fmt.Sprintf("%s_%s_release.rdf", baseName(path.Base(spj)), t.Format(layout))
+		name := fmt.Sprintf("%s_%s_release.nq", baseName(path.Base(spj)), t.Format(layout))
 
 		err = objects.PipeCopy(v1, mc, name, bucketName, pa[p], "graphs/latest") // have this function return the object name and path, easy to load and remove then
 		if err != nil {

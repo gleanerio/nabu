@@ -54,6 +54,7 @@ func Skolemization(nq, key string) (string, error) {
 
 	var err = scanner.Err()
 	if err != nil {
+		log.Errorf("Error decoding source: %s\n", key)
 		log.Error(err)
 	}
 

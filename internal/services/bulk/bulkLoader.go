@@ -16,37 +16,28 @@ import (
 
 // BulkAssembly collects the objects from a bucket to load
 func BulkAssembly(v1 *viper.Viper, mc *minio.Client) error {
-	fmt.Println("Jena:BulkAssembly")
+	fmt.Println("Bulk function BulkAssembly")
 	bucketName, _ := config.GetBucketName(v1)
 	objCfg, _ := config.GetObjectsConfig(v1)
-	spql, _ := config.GetSparqlConfig(v1)
 	pa := objCfg.Prefix
 
 	var err error
 
 	for p := range pa {
 		name := fmt.Sprintf("%s_bulk.rdf", baseName(path.Base(pa[p])))
-
 		err = objects.PipeCopy(v1, mc, name, bucketName, pa[p], "scratch") // have this function return the object name and path, easy to load and remove then
 		//err = objects.MillerNG(name, bucketName, pa[p], mc) // have this function return the object name and path, easy to load and remove then
-
 		if err != nil {
 			return err
 		}
 	}
 
 	for p := range pa {
-		// will need a function call at some point to work with the new object
-
 		name := fmt.Sprintf("%s_bulk.rdf", baseName(path.Base(pa[p])))
-		_, err := docfunc(v1, mc, bucketName, fmt.Sprintf("/scratch/%s", name), spql.EndpointBulk)
-
-		//name := fmt.Sprintf("%s_bulk.rdf", pa[p])
-		//_, err := docfunc(v1, mc, bucketName, fmt.Sprintf("/%s/%s", pa[p], name), spql.EndpointBulk)
+		_, err := docfunc(v1, mc, bucketName, fmt.Sprintf("/scratch/%s", name))
 		if err != nil {
 			log.Println(err)
 		}
-		//log.Printf("docfunc: %s", string(r))  // where r could come from docfunc above
 	}
 
 	// TODO  remove the temporary object?

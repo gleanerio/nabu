@@ -18,7 +18,7 @@ func JSONLDToNQ(v1 *viper.Viper, jsonld string) (string, error) {
 		return "", err
 	}
 
-	triples, err := proc.ToRDF(myInterface, options) // returns triples but toss them, just validating
+	triples, err := proc.ToRDF(myInterface, options)
 	if err != nil {
 		log.Println("Error when transforming JSON-LD document to RDF:", err)
 		return "", err

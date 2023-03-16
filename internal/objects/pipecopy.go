@@ -5,9 +5,10 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"github.com/spf13/viper"
 	"io"
 	"sync"
+
+	"github.com/spf13/viper"
 
 	"github.com/gleanerio/nabu/internal/graph"
 	log "github.com/sirupsen/logrus"
@@ -16,10 +17,13 @@ import (
 )
 
 // PipeCopy writes a new object based on an prefix, this function assumes the objects are valid when concatenated
+// v1:  viper config object
+// mc:  minio client pointer
 // name:  name of the NEW object
 // bucket:  source bucket  (and target bucket)
 // prefix:  source prefix
-// mc:  minio client pointer
+// destprefix:   destination prefix
+// sf: boolean to declare if single file or not.   If so, skip skolimization since JSON-LD library output is enough
 func PipeCopy(v1 *viper.Viper, mc *minio.Client, name, bucket, prefix, destprefix string) error {
 	log.Printf("PipeCopy with name: %s   bucket: %s  prefix: %s", name, bucket, prefix)
 
@@ -32,6 +36,8 @@ func PipeCopy(v1 *viper.Viper, mc *minio.Client, name, bucket, prefix, destprefi
 	defer close(doneCh)           // Indicate to our routine to exit cleanly upon return.
 	isRecursive := true
 
+	//log.Printf("Bulkfile name: %s_graph.nq", name)
+
 	go func() {
 		defer lwg.Done()
 		defer func(pw *io.PipeWriter) {
@@ -39,6 +45,24 @@ func PipeCopy(v1 *viper.Viper, mc *minio.Client, name, bucket, prefix, destprefi
 			if err != nil {
 			}
 		}(pw)
+
+		// Set and use a "single file flag" to bypass skolimaization since if it is a single file
+		// the JSON-LD to RDF will correctly map blank nodes.
+		// NOTE:  with a background context we can't get the len(channel) so we have to iterate it.
+		// This is fast, but it means we have to do the ListObjects twice
+		clen := 0
+		sf := false
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+		lenCh := mc.ListObjects(ctx, bucket, minio.ListObjectsOptions{Prefix: prefix, Recursive: isRecursive})
+		for _ = range lenCh {
+			clen = clen + 1
+		}
+		if clen == 1 {
+			sf = true
+		}
+		log.Printf("\nChannel/object length: %d\n", clen)
+		log.Printf("Single file mode set: %t", sf)
 
 		objectCh := mc.ListObjects(context.Background(), bucket, minio.ListObjectsOptions{Prefix: prefix, Recursive: isRecursive})
 
@@ -66,25 +90,34 @@ func PipeCopy(v1 *viper.Viper, mc *minio.Client, name, bucket, prefix, destprefi
 				return
 			}
 
-			// TODO add the context into this fle  (then load to Jena without explicate graph)
-			// g = fmt.Sprintf("urn:%s:%s", bucketName, strings.TrimSuffix(s2c, ".rdf"))
-			// func NQNewGraph(inquads, newctx string) (string, string, error) {
+			var snq string
 
-			//log.Println("Calling Skolemization")
-			snq, err := graph.Skolemization(nq, object.Key)
+			if sf {
+				snq = nq //  just pass through the RDF without trying to Skolemize since we ar a single fil
+			} else {
+				snq, err = graph.Skolemization(nq, object.Key)
+				if err != nil {
+					return
+				}
+			}
+
+			// 1) get graph URI
+			ctx, err := graph.MakeURN(object.Key, bucket)
+			if err != nil {
+				return
+			}
+			// 2) convert NT to NQ
+			csnq, err := graph.NtToNq(snq, ctx)
 			if err != nil {
 				return
 			}
 
-			_, err = pw.Write([]byte(snq))
+			_, err = pw.Write([]byte(csnq))
 			if err != nil {
 				return
 			}
 		}
-
 	}()
-
-	log.Printf("Bulkfile name: %s_graph.nq", name)
 
 	// go function to write to minio from pipe
 	go func() {

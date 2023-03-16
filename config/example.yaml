@@ -4,23 +4,26 @@ minio:
   ssl: false
   accesskey: akey
   secretkey: skey
-  bucket: gleaner2
+  bucket: gleaner
+context:
+  cache: true
+  strict: true
+contextmaps:
+  - prefix: "https://schema.org/"
+    file: "./assets/schemaorg-current-https.jsonld"  # wget http://schema.org/docs/jsonldcontext.jsonld
+  - prefix: "http://schema.org/"
+    file: "./assets/schemaorg-current-http.jsonld"  # wget http://schema.org/docs/jsonldcontext.jsonld
 objects:
   domain: us-east-1
   prefix:
-    - milled/iris
-    - prov/iris
+    - summoned/providera
+    - prov/providera
     - org
-  prefixoff:
-    - summoned/aquadocs
-    - prov/aquadocs
-    - milled/opentopography
-    - prov/opentopography
 sparql:
   endpoint: http://localhost/blazegraph/namespace/earthcube/sparql
   endpointBulk: http://coreos.lan:3030/testing/data
+  endpointMethod: POST
+  contentType: application/n-quads
   authenticate: false
   username: ""
   password: ""
-txtaipkg:
-  endpoint: http://0.0.0.0:8000
