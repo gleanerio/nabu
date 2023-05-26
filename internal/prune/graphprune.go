@@ -18,7 +18,7 @@ func Snip(v1 *viper.Viper, mc *minio.Client) error {
 	objs, err := config.GetObjectsConfig(v1)
 	bucketName, _ := config.GetBucketName(v1)
 	if err != nil {
-		log.Println(err)
+		log.Error(err)
 	}
 	pa = objs.Prefix
 
@@ -29,7 +29,7 @@ func Snip(v1 *viper.Viper, mc *minio.Client) error {
 		// do the object assembly
 		oa, err := ObjectList(v1, mc, pa[p])
 		if err != nil {
-			log.Println(err)
+			log.Error(err)
 			return err
 		}
 
@@ -38,7 +38,7 @@ func Snip(v1 *viper.Viper, mc *minio.Client) error {
 		//ga, err := graphListStatements(v1, mc, pa[p])
 		ga, err := graphList(v1, mc, pa[p])
 		if err != nil {
-			log.Println(err)
+			log.Error(err)
 			return err
 		}
 
@@ -70,7 +70,7 @@ func Snip(v1 *viper.Viper, mc *minio.Client) error {
 		if len(d) > 0 {
 			bar := progressbar.Default(int64(len(d)))
 			for x := range d {
-				log.Printf("Remove graph: %s\n", d[x])
+				log.Infof("Remove graph: %s\n", d[x])
 				graph.Drop(v1, d[x])
 				bar.Add(1)
 			}
