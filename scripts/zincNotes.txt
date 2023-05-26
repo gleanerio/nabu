@@ -1,3 +1,0 @@
-
-curl -u admin:Complexpass#123 -X POST --data-binary @zincpayload.json http://localhost:4080/api/myshinynewindex/_search
-

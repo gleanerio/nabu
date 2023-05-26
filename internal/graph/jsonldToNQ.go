@@ -3,18 +3,13 @@ package graph
 import (
 	"encoding/json"
 	"fmt"
-	"log"
-
-	"github.com/piprate/json-gold/ld"
+	log "github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 )
 
 // JSONLDToNQ takes JSON-LD and convets to nqquads (or ntriples if no graph?)
-func JSONLDToNQ(jsonld string) (string, error) {
-	proc := ld.NewJsonLdProcessor()
-	options := ld.NewJsonLdOptions("")
-	// add the processing mode explicitly if you need JSON-LD 1.1 features
-	options.ProcessingMode = ld.JsonLd_1_1
-	options.Format = "application/n-quads"
+func JSONLDToNQ(v1 *viper.Viper, jsonld string) (string, error) {
+	proc, options := JLDProc(v1)
 
 	var myInterface interface{}
 	err := json.Unmarshal([]byte(jsonld), &myInterface)
@@ -23,7 +18,7 @@ func JSONLDToNQ(jsonld string) (string, error) {
 		return "", err
 	}
 
-	triples, err := proc.ToRDF(myInterface, options) // returns triples but toss them, just validating
+	triples, err := proc.ToRDF(myInterface, options)
 	if err != nil {
 		log.Println("Error when transforming JSON-LD document to RDF:", err)
 		return "", err

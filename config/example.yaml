@@ -1,0 +1,29 @@
+minio:
+  address: localhost
+  port: 9000
+  ssl: false
+  accesskey: akey
+  secretkey: skey
+  bucket: gleaner
+context:
+  cache: true
+  strict: true
+contextmaps:
+  - prefix: "https://schema.org/"
+    file: "./assets/schemaorg-current-https.jsonld"  # wget http://schema.org/docs/jsonldcontext.jsonld
+  - prefix: "http://schema.org/"
+    file: "./assets/schemaorg-current-http.jsonld"  # wget http://schema.org/docs/jsonldcontext.jsonld
+objects:
+  domain: us-east-1
+  prefix:
+    - summoned/providera
+    - prov/providera
+    - org
+sparql:
+  endpoint: http://localhost/blazegraph/namespace/earthcube/sparql
+  endpointBulk: http://coreos.lan:3030/testing/data
+  endpointMethod: POST
+  contentType: application/n-quads
+  authenticate: false
+  username: ""
+  password: ""

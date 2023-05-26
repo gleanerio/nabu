@@ -3,8 +3,7 @@ package objects
 import (
 	"bytes"
 	"context"
-	"fmt"
-	"log"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/minio/minio-go/v7"
 )
@@ -13,13 +12,13 @@ import (
 func GetS3Bytes(mc *minio.Client, bucket, object string) ([]byte, string, error) {
 	fo, err := mc.GetObject(context.Background(), bucket, object, minio.GetObjectOptions{})
 	if err != nil {
-		fmt.Println(err)
+		log.Info(err)
 		return nil, "", err
 	}
 
 	oi, err := fo.Stat()
 	if err != nil {
-		log.Println("Issue with reading an object..  should I just fatal on this to make sure?")
+		log.Infof("Issue with reading an object:  %s%s", bucket, object)
 	}
 
 	// resuri := ""

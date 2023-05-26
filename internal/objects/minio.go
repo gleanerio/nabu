@@ -1,12 +1,13 @@
 package objects
 
 import (
+	"errors"
 	"fmt"
 	"github.com/gleanerio/nabu/pkg/config"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
-	"log"
 )
 
 type Entry struct {
@@ -38,6 +39,8 @@ func MinioConnection(v1 *viper.Viper) (*minio.Client, error) {
 	// minioClient, err := minio.New(endpoint, accessKeyID, secretAccessKey, true)
 	minioClient, err := minio.New(endpoint, &minio.Options{Creds: credentials.NewStaticV4(accessKeyID, secretAccessKey, ""), Secure: useSSL})
 	if err != nil {
+		err = errors.New(err.Error() + fmt.Sprintf("connection info: endpoint: %v SSL: %v ", endpoint, useSSL))
+
 		log.Fatalln(err)
 		return nil, err
 	}
@@ -45,5 +48,12 @@ func MinioConnection(v1 *viper.Viper) (*minio.Client, error) {
 	// if err != nil {
 	// 	log.Fatalln(err)
 	// }
+	minioClient.IsOnline()
+	if err != nil {
+		err = errors.New(err.Error() + fmt.Sprintf("connection info: endpoint: %v SSL: %v ", endpoint, useSSL))
+
+		log.Fatalln(err)
+		return nil, err
+	}
 	return minioClient, err
 }

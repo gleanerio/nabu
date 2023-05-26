@@ -1,11 +1,11 @@
 package graph
 
 import (
-	"log"
+	"github.com/piprate/json-gold/ld"
+	log "github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 	"net/http"
 	"os"
-
-	"github.com/piprate/json-gold/ld"
 )
 
 // ContextMapping holds the JSON-LD mappings for cached context
@@ -14,43 +14,46 @@ type ContextMapping struct {
 	File   string
 }
 
-// TODO   we create this all the time..  stupidly..  Generate these pointers
-// and pass them around, don't keep making it over and over
-// Ref:  https://schema.org/docs/howwework.html and https://schema.org/docs/jsonldcontext.json
-
 // JLDProc builds the JSON-LD processor and sets the options object
 // for use in framing, processing and all JSON-LD actions
-func JLDProc() (*ld.JsonLdProcessor, *ld.JsonLdOptions) { // TODO make a booklean
+func JLDProc(v1 *viper.Viper) (*ld.JsonLdProcessor, *ld.JsonLdOptions) {
 	proc := ld.NewJsonLdProcessor()
 	options := ld.NewJsonLdOptions("")
 
-	client := &http.Client{}
-	nl := ld.NewDefaultDocumentLoader(client)
+	mcfg := v1.GetStringMapString("context")
 
-	m := make(map[string]string)
+	if mcfg["cache"] == "true" {
+		client := &http.Client{}
+		nl := ld.NewDefaultDocumentLoader(client)
 
-	f := "./web/jsonldcontext.json"
-	if fileExists(f) {
-		m["http://schema.org/"] = f
-	} else {
-		log.Printf("Could not find: %s", f)
+		var s []ContextMapping
+		err := v1.UnmarshalKey("contextmaps", &s)
+		if err != nil {
+			log.Error(err)
+		}
+
+		m := make(map[string]string)
+
+		for i := range s {
+			if fileExists(s[i].File) {
+				m[s[i].Prefix] = s[i].File
+
+			} else {
+				log.Error("ERROR: context file location ", s[i].File, " is wrong, this is a critical error")
+			}
+		}
+
+		// Read mapping from config file
+		cdl := ld.NewCachingDocumentLoader(nl)
+		err = cdl.PreloadWithMapping(m)
+		if err != nil {
+			return nil, nil
+		}
+		options.DocumentLoader = cdl
 	}
 
-	f = "./web/jsonldcontext.json"
-	if fileExists(f) {
-		m["https://schema.org/"] = f
-	} else {
-		log.Printf("Could not find: %s", f)
-	}
-
-	// Read mapping from config file
-	cdl := ld.NewCachingDocumentLoader(nl)
-	cdl.PreloadWithMapping(m)
-	options.DocumentLoader = cdl
-
-	// TODO let this be set later via config
-	// Set to a default format..
-	options.Format = "application/nquads"
+	options.ProcessingMode = ld.JsonLd_1_1 // add mode explicitly if you need JSON-LD 1.1 features
+	options.Format = "application/nquads"  // Set to a default format. (make an option?)
 
 	return proc, options
 }

@@ -4,11 +4,11 @@ import (
 	"bytes"
 	"context"
 	"github.com/minio/minio-go/v7"
-	"log"
+	log "github.com/sirupsen/logrus"
 )
 
 // PutS3Bytes is used write an object
-func PutS3Bytes(mc *minio.Client, bucketName, objectName, mimeType string, object []byte) (int, error) {
+func putS3Bytes(mc *minio.Client, bucketName, objectName, mimeType string, object []byte) (int, error) {
 	usermeta := make(map[string]string) // what do I want to know?
 	usermeta["url"] = "urlloc"
 	usermeta["sha1"] = "bss"
@@ -17,9 +17,9 @@ func PutS3Bytes(mc *minio.Client, bucketName, objectName, mimeType string, objec
 	n, err := mc.PutObject(context.Background(), bucketName, objectName, bytes.NewReader(object), int64(len(object)), minio.PutObjectOptions{ContentType: mimeType, UserMetadata: usermeta})
 	if err != nil {
 		log.Printf("%s", objectName)
-		log.Fatalln(err)
+		log.Println(err)
 	}
-	log.Printf("Uploaded Bucket:%s File:%s Size %d\n", bucketName, objectName, n)
+	log.Printf("Uploaded Bucket:%s File:%s Size %d\n", bucketName, objectName, n.Size)
 
-	return 0, nil
+	return int(n.Size), nil // TODO return in64 rather than cast
 }

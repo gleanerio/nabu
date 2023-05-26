@@ -1,16 +1,18 @@
 package cli
 
 import (
-	"log"
+	"errors"
+	"fmt"
+	"github.com/gleanerio/nabu/internal/common"
+	"github.com/gleanerio/nabu/internal/objects"
+	"github.com/gleanerio/nabu/pkg/config"
+	"github.com/minio/minio-go/v7"
+	log "github.com/sirupsen/logrus"
+	"github.com/spf13/cobra"
 	"mime"
 	"os"
 	"path"
 	"path/filepath"
-
-	"github.com/gleanerio/nabu/internal/objects"
-	"github.com/gleanerio/nabu/pkg/config"
-	"github.com/minio/minio-go/v7"
-	"github.com/spf13/cobra"
 
 	"github.com/spf13/viper"
 )
@@ -53,6 +55,7 @@ func init() {
 	//log.SetFlags(log.Lshortfile | log.LstdFlags) // optional: log date-time, filename, and line number
 	//log.Println("Logging to custom file")
 	//log.Println("EarthCube Nabu")
+	common.InitLogging()
 
 	mime.AddExtensionType(".jsonld", "application/ld+json")
 
@@ -117,27 +120,20 @@ func initConfig() {
 
 	// If a config file is found, read it in.
 
-	// Set up some logging approaches
-	f, err := os.OpenFile("naburun.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
-	if err != nil {
-		log.Fatalf("error opening file: %v", err)
-	}
-	defer f.Close()
-
-	log.SetOutput(f)
-	log.SetFlags(log.Lshortfile)
-	// log.SetOutput(ioutil.Discard) // turn off all logging
-	//wrt := io.MultiWriter(os.Stdout, f)
-	//log.SetOutput(wrt)
-
 	mc, err = objects.MinioConnection(viperVal)
 	if err != nil {
 		log.Fatal("cannot connect to minio: %s", err)
 	}
 
+	err = common.ConnCheck(mc)
+	if err != nil {
+		err = errors.New(err.Error() + fmt.Sprintf(" Ignore that. It's not the bucket. check config/minio: address, port, ssl. connection info: endpoint: %v ", mc.EndpointURL()))
+		log.Fatal("cannot connect to minio: ", err)
+	}
+
 	bucketVal, err = config.GetBucketName(viperVal)
 	if err != nil {
-		log.Println("cannot read bucketname from : %s ", err)
+		log.Fatal("cannot read bucketname from : %s ", err)
 	}
 	// Override prefix in config if flag set
 	//if isFlagPassed("prefix") {
@@ -149,12 +145,18 @@ func initConfig() {
 	//	viperVal.Set("objects", map[string]string{"bucket": b, "prefix": p})
 	//}
 	if prefixVal != "" {
-		out := viperVal.GetStringMapString("objects")
-		b := out["bucket"]
-		p := prefixVal
+		//out := viperVal.GetStringMapString("objects")
+		//d := out["domain"]
+
+		var p []string
+		p = append(p, prefixVal)
+
+		viperVal.Set("objects.prefix", p)
+
+		//p := prefixVal
 		// r := out["region"]
 		// v1.Set("objects", map[string]string{"bucket": b, "prefix": NEWPREFIX, "region": r})
-		viperVal.Set("objects", map[string]string{"bucket": b, "prefix": p})
+		//viperVal.Set("objects", map[string]string{"domain": d, "prefix": p})
 	}
 
 }
