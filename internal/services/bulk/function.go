@@ -19,9 +19,9 @@ import (
 	"github.com/minio/minio-go/v7"
 )
 
-// docfunc needs to be renamed to something like BulkUpate and made exported
+// BulkLoad
 // This functions could be used to load stored release graphs to the graph database
-func docfunc(v1 *viper.Viper, mc *minio.Client, bucketName string, item string) (string, error) {
+func BulkLoad(v1 *viper.Viper, mc *minio.Client, bucketName string, item string) (string, error) {
 	spql, err := config.GetSparqlConfig(v1)
 	if err != nil {
 		return "", err

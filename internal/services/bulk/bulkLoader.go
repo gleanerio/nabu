@@ -34,7 +34,7 @@ func BulkAssembly(v1 *viper.Viper, mc *minio.Client) error {
 
 	for p := range pa {
 		name := fmt.Sprintf("%s_bulk.rdf", baseName(path.Base(pa[p])))
-		_, err := docfunc(v1, mc, bucketName, fmt.Sprintf("/scratch/%s", name))
+		_, err := BulkLoad(v1, mc, bucketName, fmt.Sprintf("/scratch/%s", name))
 		if err != nil {
 			log.Println(err)
 		}

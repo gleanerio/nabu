@@ -61,5 +61,13 @@ alternative
 urn:{bucket}:summoned:{provider}:{sha}
 ```
 
+alternativev2
+```
+urn:{program}:{organization}:{provider}:{sha}
+
+urn:gleaner.io:earthcube:edmo:0255293683036aac2a95a2479cc841189c0ac3f8
+
+```
+
 Note also here, the sha is now based on the more expressive approach coded into Gleaner and 
 not just the sha of the data graph by default. 

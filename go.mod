@@ -27,7 +27,8 @@ require (
 	github.com/neuml/txtai.go v1.0.0
 	github.com/orandin/lumberjackrus v1.0.1
 	github.com/paulmach/go.geojson v1.4.0 // indirect
-	github.com/piprate/json-gold v0.4.0
+	github.com/piprate/json-gold v0.5.0
+	github.com/pquerna/cachecontrol v0.1.0 // indirect
 	github.com/prometheus/client_golang v0.9.3 // indirect
 	github.com/protolambda/gocyto v0.0.1 // indirect
 	github.com/rs/xid v1.2.1
