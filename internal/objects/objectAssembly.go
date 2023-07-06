@@ -39,7 +39,7 @@ func ObjectAssembly(v1 *viper.Viper, mc *minio.Client) error {
 			oa = append(oa, object.Key)
 		}
 
-		log.Printf("%s:%s object count: %d\n", bucketName, pa[p], len(oa))
+		log.Infof("%s:%s object count: %d\n", bucketName, pa[p], len(oa))
 		bar := progressbar.Default(int64(len(oa)))
 		for item := range oa {
 			_, err := PipeLoad(v1, mc, bucketName, oa[item], spql.Endpoint)
