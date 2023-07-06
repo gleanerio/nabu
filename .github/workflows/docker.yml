@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - master
+      - dev
       - dev_docker
     tags:
       - v3.*
