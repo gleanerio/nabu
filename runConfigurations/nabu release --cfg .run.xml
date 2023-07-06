@@ -1,8 +1,8 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="nabu object --cfg " type="GoApplicationRunConfiguration" factoryName="Go Application" folderName="direct">
+  <configuration default="false" name="nabu release --cfg " type="GoApplicationRunConfiguration" factoryName="Go Application" folderName="direct">
     <module name="nabu" />
     <working_directory value="$PROJECT_DIR$" />
-    <parameters value="object --cfg ../gleaner/configs/local/nabu milled/opentopography/ffa0df033bb3a8fc9f600c80df3501fe1a2dbe93.rdf" />
+    <parameters value="release --cfg ../gleaner/configs/local/nabu" />
     <EXTENSION ID="net.ashald.envfile">
       <option name="IS_ENABLED" value="false" />
       <option name="IS_SUBST" value="false" />

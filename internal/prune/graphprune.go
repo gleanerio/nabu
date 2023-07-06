@@ -2,7 +2,6 @@ package prune
 
 import (
 	"fmt"
-	"github.com/gleanerio/nabu/internal/common"
 	"github.com/gleanerio/nabu/internal/graph"
 	"github.com/gleanerio/nabu/internal/objects"
 	"github.com/gleanerio/nabu/pkg/config"
@@ -28,7 +27,7 @@ func Snip(v1 *viper.Viper, mc *minio.Client) error {
 	for p := range pa {
 
 		// do the object assembly
-		oa, err := common.ObjectList(v1, mc, pa[p])
+		oa, err := objects.ObjectList(v1, mc, pa[p])
 		if err != nil {
 			log.Println(err)
 			return err
