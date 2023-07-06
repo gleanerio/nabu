@@ -2,14 +2,13 @@ package releases
 
 import (
 	"fmt"
+	"github.com/gleanerio/nabu/internal/common"
 
 	log "github.com/sirupsen/logrus"
 
 	"path"
 	"strings"
 	"time"
-
-	"github.com/gleanerio/nabu/internal/prune"
 
 	"github.com/gleanerio/nabu/internal/objects"
 	"github.com/gleanerio/nabu/pkg/config"
@@ -27,7 +26,7 @@ func BulkRelease(v1 *viper.Viper, mc *minio.Client) error {
 
 	var err error
 
-	ol, err := prune.ObjectList(v1, mc, "graphs/latest")
+	ol, err := common.ObjectList(v1, mc, "graphs/latest")
 	if err != nil {
 		return err
 	}

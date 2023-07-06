@@ -1,4 +1,4 @@
-package prune
+package common
 
 import (
 	"context"
