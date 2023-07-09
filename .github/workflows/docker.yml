@@ -100,7 +100,7 @@ jobs:
             type=ref,event=tag
             type=semver,pattern={{version}}
       - name: Build and push by digest
-        id: docker_build
+        id: build
         uses: docker/build-push-action@v4
         with:
           # push: true
