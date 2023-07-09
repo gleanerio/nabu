@@ -92,11 +92,13 @@ jobs:
           images: ${{ env.REGISTRY_IMAGE }}
           flavor: |
             latest=true
+#          tags: |
+#            type=ref,event=tag
+#            type=ref,event=branch
+#            type=semver,pattern={{version}}
           tags: |
             type=ref,event=tag
-           # type=ref,event=branch
             type=semver,pattern={{version}}
-
       - name: Build and push by digest
         id: docker_build
         uses: docker/build-push-action@v4
