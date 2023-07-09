@@ -50,13 +50,16 @@ jobs:
         run: curl https://schema.org/version/latest/schemaorg-current-https.jsonld --output assets/schemaorg-current-https.jsonld
       - name: donwload schema
         run: curl https://schema.org/version/latest/schemaorg-current-http.jsonld --output assets/schemaorg-current-http.jsonld
-
+      - name: Set variables
+        run: |
+          VER=$(cat VERSION)
+          echo "VERSION=$VER" >> $GITHUB_ENV
       #     - name: Run tests
       #      run: go test -v -p=1 -timeout=0 ./...
       - id: binary
         name: build
         run: |
-          go build -o nabu
+          go build -o nabu -ldflags "-s -w -X main.VERSION=${{ env.VERSION }} -X github.com/gleanerio/nabu/pkg.VERSION=${{ env.VERSION }}"
         working-directory: ./cmd/nabu
         env:
           GOOS: ${{matrix.goss}}
