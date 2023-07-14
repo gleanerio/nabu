@@ -15,6 +15,7 @@ func GetS3Bytes(mc *minio.Client, bucket, object string) ([]byte, string, error)
 		log.Info(err)
 		return nil, "", err
 	}
+	defer fo.Close()
 
 	oi, err := fo.Stat()
 	if err != nil {
