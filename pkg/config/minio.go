@@ -13,6 +13,7 @@ type Minio struct {
 	Accesskey string //`mapstructure:"MINIO_ACCESS_KEY"`
 	Secretkey string // `mapstructure:"MINIO_SECRET_KEY"`
 	Bucket    string
+	Region    string
 }
 
 var MinioTemplate = map[string]interface{}{
@@ -23,6 +24,7 @@ var MinioTemplate = map[string]interface{}{
 		"secretkey": "",
 		"bucket":    "",
 		"ssl":       "false",
+		"region":    "",
 	},
 }
 
@@ -44,6 +46,7 @@ func ReadMinioConfig(minioSubtress *viper.Viper) (Minio, error) {
 	minioSubtress.BindEnv("secretkey", "MINIO_SECRET_KEY")
 	minioSubtress.BindEnv("secretkey", "MINIO_SECRET_KEY")
 	minioSubtress.BindEnv("bucket", "MINIO_BUCKET")
+	minioSubtress.BindEnv("region", "MINIO_REGION")
 	minioSubtress.AutomaticEnv()
 	// config already read. substree passed
 	err := minioSubtress.Unmarshal(&minioCfg)
