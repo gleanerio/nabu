@@ -19,26 +19,24 @@ urn:{bucket}:{docstatus}:{provider}:{sha}
 
 proposed
 ```
-urn:{bucket}:{provider}:{sha}
+urn:{program}:{organization}:{provider}:{sha}
 ```
-
-## Decision
 
 So under the old approach we had URNs like
 
 ```rdf
 urn:gleaner.io:summoned:edmo:0255293683036aac2a95a2479cc841189c0ac3f8
-```
 or
-```rdf
 urn:gleaner.io:milled:edmo:0255293683036aac2a95a2479cc841189c0ac3f8
 ```
+
+## Decision
 
 The milled and summoned elements were pointless and led to confusion and were not 
 really important in terms of getting to the object.  
 
-The new desired URN pattern would then look like.  These would likely always be pulled
-from the summoned prefix, and as such be JSON-LD.  
+The new desired URN pattern would then look like the following.  
+These would likely always be pulled from the summoned prefix, and as such be JSON-LD.  
 
 ```rdf
 urn:{program}:{organization}:{provider}:{sha}
