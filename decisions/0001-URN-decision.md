@@ -41,7 +41,13 @@ The new desired URN pattern would then look like.  These would likely always be 
 from the summoned prefix, and as such be JSON-LD.  
 
 ```rdf
-urn:gleaner.io:edmo:0255293683036aac2a95a2479cc841189c0ac3f8
+urn:{program}:{organization}:{provider}:{sha}
+```
+
+```rdf
+urn:gleaner.io:oih:edmo:0255293683036aac2a95a2479cc841189c0ac3f8
+or
+urn:gleaner.iow:iow:counties0:00010f9f071c39fcc0ca73eccad7470b675cd8a3 
 ```
 
 ## Consequences
@@ -53,21 +59,3 @@ Also, this means the URN does not actually represent the location of the object.
 client must know to go looking in summoned and or milled.  As noted, the use of milled is 
 not really compelling.  That aside, it is a case where the URN is now just an identifier and 
 does not represent a resolvable object.  
-
-Given this point, it is up for discussion if the URN might be better as:
-
-alternative
-```
-urn:{bucket}:summoned:{provider}:{sha}
-```
-
-alternativev2
-```
-urn:{program}:{organization}:{provider}:{sha}
-
-urn:gleaner.io:earthcube:edmo:0255293683036aac2a95a2479cc841189c0ac3f8
-
-```
-
-Note also here, the sha is now based on the more expressive approach coded into Gleaner and 
-not just the sha of the data graph by default. 
