@@ -22,7 +22,7 @@ func Snip(v1 *viper.Viper, mc *minio.Client) error {
 	}
 	pa = objs.Prefix
 
-	fmt.Println(objs)
+	//fmt.Println(objs)
 
 	for p := range pa {
 
@@ -48,7 +48,7 @@ func Snip(v1 *viper.Viper, mc *minio.Client) error {
 		for x := range oa {
 			//s := strings.TrimSuffix(oa[x], ".rdf")
 			//s2c := strings.Replace(s, "/", ":", -1)
-			g, err := graph.MakeURN(oa[x], bucketName)
+			g, err := graph.MakeURN(v1, oa[x], bucketName)
 			if err != nil {
 				log.Error("gets3Bytes %v\n", err)
 				// should this just return. since on this error things are not good

@@ -3,23 +3,24 @@ package cli
 import (
 	"errors"
 	"fmt"
+	"mime"
+	"os"
+	"path"
+	"path/filepath"
+
 	"github.com/gleanerio/nabu/internal/common"
 	"github.com/gleanerio/nabu/internal/objects"
 	"github.com/gleanerio/nabu/pkg/config"
 	"github.com/minio/minio-go/v7"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"mime"
-	"os"
-	"path"
-	"path/filepath"
 
 	"github.com/spf13/viper"
 )
 
 var cfgFile, cfgName, cfgPath, nabuConfName string
 var minioVal, portVal, accessVal, secretVal, bucketVal string
-var sslVal bool
+var sslVal, dangerousVal bool
 var viperVal *viper.Viper
 var mc *minio.Client
 var prefixVal string
@@ -84,6 +85,7 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&bucketVal, "bucket", "gleaner", "The configuration bucket")
 
 	rootCmd.PersistentFlags().BoolVar(&sslVal, "ssl", false, "Use SSL boolean")
+	rootCmd.PersistentFlags().BoolVar(&dangerousVal, "dangerous", false, "Use dangerous mode boolean")
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
 	//rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
@@ -144,6 +146,11 @@ func initConfig() {
 	//	// v1.Set("objects", map[string]string{"bucket": b, "prefix": NEWPREFIX, "region": r})
 	//	viperVal.Set("objects", map[string]string{"bucket": b, "prefix": p})
 	//}
+
+	if dangerousVal {
+		viperVal.Set("flags.dangerous", true)
+	}
+
 	if prefixVal != "" {
 		//out := viperVal.GetStringMapString("objects")
 		//d := out["domain"]

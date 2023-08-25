@@ -16,7 +16,6 @@ import (
 
 // BulkAssembly collects the objects from a bucket to load
 func BulkAssembly(v1 *viper.Viper, mc *minio.Client) error {
-	fmt.Println("Bulk function BulkAssembly")
 	bucketName, _ := config.GetBucketName(v1)
 	objCfg, _ := config.GetObjectsConfig(v1)
 	pa := objCfg.Prefix

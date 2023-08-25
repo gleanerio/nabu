@@ -3,6 +3,7 @@ package objects
 import (
 	"errors"
 	"fmt"
+
 	"github.com/gleanerio/nabu/pkg/config"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
@@ -70,13 +71,13 @@ func MinioConnection(v1 *viper.Viper) (*minio.Client, error) {
 	var minioClient *minio.Client
 
 	if mcfg.Region == "" {
-		log.Println("no region set")
+		log.Println("info: no region set")
 		minioClient, err = minio.New(endpoint,
 			&minio.Options{Creds: credentials.NewStaticV4(accessKeyID, secretAccessKey, ""),
 				Secure: useSSL,
 			})
 	} else {
-		log.Println("region set for GCS or AWS, may cause issues with minio")
+		log.Println("info: region set for GCS or AWS, may cause issues with minio")
 		region := mcfg.Region
 		minioClient, err = minio.New(endpoint,
 			&minio.Options{Creds: credentials.NewStaticV4(accessKeyID, secretAccessKey, ""),

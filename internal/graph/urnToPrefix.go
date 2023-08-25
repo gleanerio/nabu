@@ -6,15 +6,22 @@ import (
 )
 
 // URNToPrefix convert  urn string to a valid s3 prefix
-// So urn:gleaner.oih:edmo:00032788b3d1eecf4257bd8ffd42c5d56761a6bf
-// becomes gleaner.oih/[summoned]/edmo/00032788b3d1eecf4257bd8ffd42c5d56761a6bf.jsonld
+// So
+//
+//	urn:gleaner.iow:iow:counties0:1bbde08c130150c48e7d424a60a00d574174bd28
+//
+// becomes
+//
+//	gleaner.iow/summoned/counties0/1bbde08c130150c48e7d424a60a00d574174bd28f.jsonld
 func URNToPrefix(urn, pathelement, suffix string) (string, error) {
 	parts := strings.Split(urn, ":")
 
-	pos := 2 // insert pathelement at this position
-
 	// Use the append function to create a new slice that includes the new element
-	np := append(parts[:pos], append([]string{pathelement}, parts[pos:]...)...)
+	//pos := 3 // insert path element at this position
+	//np := append(parts[:pos], append([]string{pathelement}, parts[pos:]...)...)
+
+	parts[2] = "summoned"
+	np := parts
 
 	// modify last element (object) with suffix
 	index := len(np) - 1
@@ -24,6 +31,8 @@ func URNToPrefix(urn, pathelement, suffix string) (string, error) {
 	np = np[2:]
 
 	objectPrefix := fmt.Sprintf("/%s", strings.Join(np, "/"))
+
+	//log.Print(objectPrefix)
 
 	return objectPrefix, nil
 }

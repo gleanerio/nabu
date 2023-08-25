@@ -3,11 +3,13 @@ package prune
 import (
 	"bytes"
 	"fmt"
+	"github.com/gleanerio/nabu/internal/graph"
 	"github.com/gleanerio/nabu/pkg/config"
 	"github.com/minio/minio-go/v7"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"github.com/tidwall/gjson"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -17,17 +19,29 @@ import (
 func graphList(v1 *viper.Viper, mc *minio.Client, prefix string) ([]string, error) {
 	ga := []string{}
 
-	spql, _ := config.GetSparqlConfig(v1)
-	bucketName, _ := config.GetBucketName(v1)
+	spql, err := config.GetSparqlConfig(v1)
+	if err != nil {
+		log.Println(err)
+		return ga, err
+	}
+	bucketName, err := config.GetBucketName(v1)
+	if err != nil {
+		log.Println(err)
+		return ga, err
+	}
 
-	// Reference ADR 0001 for why we are building the regex here for the graphs like this.
-	s2c := strings.Replace(prefix, "summoned/", ":", -1)
-	gp := fmt.Sprintf("urn:%s%s:", bucketName, s2c)
-	fmt.Printf("Pattern: %s\n", gp)
+	gp, err := graph.MakeURNPrefix(v1, bucketName, prefix)
+	if err != nil {
+		log.Println(err)
+		return ga, err
+	}
+
+	log.Printf("Pattern: %s\n", gp)
 
 	d := fmt.Sprintf("SELECT DISTINCT ?g WHERE {GRAPH ?g {?s ?p ?o} FILTER regex(str(?g), \"^%s\")}", gp)
+	//d := fmt.Sprintf("SELECT DISTINCT ?g WHERE {GRAPH ?g {?s ?p ?o} FILTER regex(str(?g), \"^%s\")}", gp)
 
-	//fmt.Println(d)
+	log.Printf("SPARQL: %s\n", d)
 
 	pab := []byte("")
 	params := url.Values{}
@@ -37,8 +51,9 @@ func graphList(v1 *viper.Viper, mc *minio.Client, prefix string) ([]string, erro
 	if err != nil {
 		log.Println(err)
 	}
-	req.Header.Set("Accept", "application/sparql-results+json")
 
+	// These headers
+	req.Header.Set("Accept", "application/sparql-results+json")
 	//req.Header.Add("Accept", "application/sparql-update")
 	//req.Header.Add("Accept", "application/n-quads")
 
@@ -50,16 +65,20 @@ func graphList(v1 *viper.Viper, mc *minio.Client, prefix string) ([]string, erro
 
 	defer resp.Body.Close()
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		log.Println(strings.Repeat("ERROR", 5))
 		log.Println("response Status:", resp.Status)
 		log.Println("response Headers:", resp.Header)
 		log.Println("response Body:", string(body))
-
 	}
 
 	//fmt.Println("response Body:", string(body))
+	err = ioutil.WriteFile("myfile.txt", body, 0644)
+	if err != nil {
+		fmt.Println("An error occurred:", err)
+		return ga, err
+	}
 
 	result := gjson.Get(string(body), "results.bindings.#.g.value")
 	result.ForEach(func(key, value gjson.Result) bool {
@@ -67,7 +86,7 @@ func graphList(v1 *viper.Viper, mc *minio.Client, prefix string) ([]string, erro
 		return true // keep iterating
 	})
 
-	// ask := Ask{}
-	// json.Unmarshal(body, &ask)
+	log.Println(len(ga))
+
 	return ga, nil
 }

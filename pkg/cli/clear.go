@@ -11,12 +11,12 @@ import (
 )
 
 // checkCmd represents the check command
-var PrefixCmd = &cobra.Command{
-	Use:   "prefix ",
-	Short: "nabu prefix command",
-	Long:  `Load graphs from prefix to triplestore`,
+var ClearCmd = &cobra.Command{
+	Use:   "clear ",
+	Short: "nabu clear command",
+	Long:  `Removes all graphs from a SPARQL endpoint `,
 	Run: func(cmd *cobra.Command, args []string) {
-		err := pkg.Prefix(viperVal, mc)
+		err := pkg.Clear(viperVal, mc)
 		if err != nil {
 			log.Fatal(err)
 			os.Exit(1)
@@ -26,7 +26,7 @@ var PrefixCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(PrefixCmd)
+	rootCmd.AddCommand(ClearCmd)
 
 	// Here you will define your flags and configuration settings.
 
