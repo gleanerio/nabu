@@ -13,7 +13,12 @@ import (
 // ObjectAssembly collects the objects from a bucket to load
 func ObjectAssembly(v1 *viper.Viper, mc *minio.Client) error {
 	objs, err := config.GetObjectsConfig(v1)
-	spql, err := config.GetSparqlConfig(v1)
+	//spql, err := config.GetSparqlConfig(v1)
+	ep := v1.GetString("flags.endpoint")
+	spql, err := config.GetEndpoint(v1, ep, "bulk")
+	if err != nil {
+		log.Error(err)
+	}
 
 	var pa = objs.Prefix
 
@@ -42,7 +47,7 @@ func ObjectAssembly(v1 *viper.Viper, mc *minio.Client) error {
 		log.Infof("%s:%s object count: %d\n", bucketName, pa[p], len(oa))
 		bar := progressbar.Default(int64(len(oa)))
 		for item := range oa {
-			_, err := PipeLoad(v1, mc, bucketName, oa[item], spql.Endpoint)
+			_, err := PipeLoad(v1, mc, bucketName, oa[item], spql.URL)
 			if err != nil {
 				log.Error(err)
 			}

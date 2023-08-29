@@ -23,7 +23,7 @@ var minioVal, portVal, accessVal, secretVal, bucketVal string
 var sslVal, dangerousVal bool
 var viperVal *viper.Viper
 var mc *minio.Client
-var prefixVal string
+var prefixVal, endpointVal string
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -71,6 +71,9 @@ func init() {
 	// This needs to be done right... there are prov/source milled/source
 	// will need a custom validator to say, hey use prefix.
 	//	rootCmd.PersistentFlags().StringVar(&prefixVal, "source", "", "prefix to run. Consistency with glcon commend")
+
+	// Enpoint Server setting var
+	rootCmd.PersistentFlags().StringVar(&endpointVal, "endpoint", "", "end point server set for the SPARQL endpoints")
 
 	rootCmd.PersistentFlags().StringVar(&cfgPath, "cfgPath", "configs", "base location for config files (default is configs/)")
 	rootCmd.PersistentFlags().StringVar(&cfgName, "cfgName", "local", "config file (default is local so configs/local)")
@@ -149,6 +152,10 @@ func initConfig() {
 
 	if dangerousVal {
 		viperVal.Set("flags.dangerous", true)
+	}
+
+	if endpointVal != "" {
+		viperVal.Set("flags.endpoint", endpointVal)
 	}
 
 	if prefixVal != "" {

@@ -1,11 +1,12 @@
-PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
-SELECT (COUNT( DISTINCT ?g) AS ?graphs)
-
+SELECT (COUNT(DISTINCT ?graph) AS ?namedGraphsCount)
+    (COUNT(*) AS ?triplesCount)
 WHERE {
-    graph ?g {
-        ?s ?p ?o
+    GRAPH ?graph {
+        ?subject ?predicate ?object
     }
 }
+
+
+
+SELECT (COUNT(DISTINCT ?graph) AS ?namedGraphsCount)(COUNT(*) AS ?triplesCount)WHERE {GRAPH ?graph {?subject ?predicate ?object}}

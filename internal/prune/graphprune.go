@@ -2,6 +2,7 @@ package prune
 
 import (
 	"fmt"
+
 	"github.com/gleanerio/nabu/internal/graph"
 	"github.com/gleanerio/nabu/internal/objects"
 	"github.com/gleanerio/nabu/pkg/config"
@@ -15,6 +16,7 @@ import (
 func Snip(v1 *viper.Viper, mc *minio.Client) error {
 	var pa []string
 	//err := v1.UnmarshalKey("objects.prefix", &pa)
+
 	objs, err := config.GetObjectsConfig(v1)
 	bucketName, _ := config.GetBucketName(v1)
 	if err != nil {
@@ -22,80 +24,98 @@ func Snip(v1 *viper.Viper, mc *minio.Client) error {
 	}
 	pa = objs.Prefix
 
-	//fmt.Println(objs)
-
 	for p := range pa {
-
-		// do the object assembly
+		// collect the objects associated with the source
 		oa, err := objects.ObjectList(v1, mc, pa[p])
 		if err != nil {
 			log.Error(err)
 			return err
 		}
 
-		// collect all the graphs from triple store
-		// TODO resolve issue with Graph and graphList vs graphListStatements
-		//ga, err := graphListStatements(v1, mc, pa[p])
+		// collect the named graphs from graph associated with the source
 		ga, err := graphList(v1, mc, pa[p])
 		if err != nil {
 			log.Error(err)
 			return err
 		}
 
-		//objs := v1.GetStringMapString("objects") // from above
 		// convert the object names to the URN pattern used in the graph
-		oag := []string{} // object array graph mode
+		// and make a map where key = URN, value = object name
+		// NOTE:  since later we want to look up the object based the URN
+		// we will do it this way since mapswnat you to know a key, not a value, when
+		// querying them.
+		// This is OK since all KV pairs involve unique keys and unique values
+		var oam = map[string]string{}
 		for x := range oa {
-			//s := strings.TrimSuffix(oa[x], ".rdf")
-			//s2c := strings.Replace(s, "/", ":", -1)
 			g, err := graph.MakeURN(v1, oa[x], bucketName)
 			if err != nil {
-				log.Error("gets3Bytes %v\n", err)
-				// should this just return. since on this error things are not good
+				log.Error("MakeURN error: %v\n", err)
 			}
-			oag = append(oag, g)
+			oam[g] = oa[x] // key (URN)= value (object prefixpath)
+		}
+
+		// make an array of just the values for use with findMissing and difference functions
+		// we have in this package
+		var oag []string // array of all keys
+		for k, _ := range oam {
+			oag = append(oag, k)
 		}
 
 		//compare lists, anything IN graph not in objects list should be removed
-		d := difference(ga, oag) // return array of items in ga that are NOT in oa
-		m := findMissingElements(oag, ga)
+		d := difference(ga, oag)  // return items in ga that are NOT in oag, we should remove these
+		m := findMissing(oag, ga) // return items from oag we need to add
 
-		fmt.Printf("Graph items: %d  Object items: %d  difference: %d\n", len(ga), len(oag), len(d))
-		fmt.Printf("Missing item count: %d\n", len(m))
+		fmt.Printf("Current graph items: %d  Cuurent object items: %d\n", len(ga), len(oag))
+		fmt.Printf("Orphaned items to remove: %d\n", len(d))
+		fmt.Printf("Missing items to add: %d\n", len(m))
 
-		log.WithFields(log.Fields{"prefix": pa[p], "Graph items": len(ga), "Object items": len(oag), "difference": len(d),
-			"Missing item count": len(m)}).Info("Nabu Prune")
+		log.WithFields(log.Fields{"prefix": pa[p], "graph items": len(ga), "object items": len(oag), "difference": len(d),
+			"missing": len(m)}).Info("Nabu Prune")
 
 		// For each in d will delete that graph
 		if len(d) > 0 {
 			bar := progressbar.Default(int64(len(d)))
 			for x := range d {
-				log.Infof("Remove graph: %s\n", d[x])
-				graph.Drop(v1, d[x])
-				bar.Add(1)
+				log.Infof("Removed graph: %s\n", d[x])
+				_, err = graph.Drop(v1, d[x])
+				if err != nil {
+					log.Error("Progress bar update issue: %v\n", err)
+				}
+				err = bar.Add(1)
+				if err != nil {
+					log.Error("Progress bar update issue: %v\n", err)
+				}
 			}
 		}
 
-		// load new ones..
-		spql, err := config.GetSparqlConfig(v1)
+		ep := v1.GetString("flags.endpoint")
+		spql, err := config.GetEndpoint(v1, ep, "bulk")
 		if err != nil {
-			log.Error("prune -> config.GetSparqlConfig %v\n", err)
+			log.Error(err)
 		}
+
+		//// load new ones
+		//spql, err := config.GetSparqlConfig(v1)
+		//if err != nil {
+		//	log.Error("prune -> config.GetSparqlConfig %v\n", err)
+		//}
 
 		if len(m) > 0 {
 			bar2 := progressbar.Default(int64(len(m)))
 			log.Info("uploading missing %n objects", len(m))
 			for x := range m {
-				np, _ := graph.URNToPrefix(m[x], "summoned", ".jsonld")
+				np := oam[m[x]]
 				log.Tracef("Add graph: %s  %s \n", m[x], np)
-				_, err := objects.PipeLoad(v1, mc, bucketName, np, spql.Endpoint)
+				_, err := objects.PipeLoad(v1, mc, bucketName, np, spql.URL)
 				if err != nil {
 					log.Error("prune -> pipeLoad %v\n", err)
 				}
-				bar2.Add(1)
+				err = bar2.Add(1)
+				if err != nil {
+					log.Error("Progress bar update issue: %v\n", err)
+				}
 			}
 		}
-
 	}
 
 	return nil

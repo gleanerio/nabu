@@ -1,7 +1,7 @@
 direction: right
 
 
-gi: Get Image {
+gi: Get Image(s) {
     style.fill: "#e0a3ff"
     width: 200
     height: 150
@@ -30,20 +30,23 @@ data: Data Graph {
 }
 
 org: Organization Graph {
-    or: Build Release Graph {
+    or: Prefix Load Graph {
         style.fill: "#f4a261"
         width: 300
     }
 
-    uor: Load Release Graph {
-        style.fill: "#f4a261"
-        width: 300
-    }
+   # uor: Load Release Graph {
+   #     style.fill: "#f4a261"
+   #     width: 300
+   # }
 
-    op:  Prune {
-        style.fill: "#f4a261"
-        width: 300
-    }
+   # op:  Prune {
+   #     style.fill: "#f4a261"
+   #     width: 300
+   # }
+
+    # org.or -> org.uor -> org.op
+
 }
 
 prov: Provenance Graph {
@@ -71,5 +74,4 @@ g -> data.dr
 g -> prov.pr
 
 data.dr -> data.udr -> data.dp
-org.or -> org.uor -> org.op
 prov.pr -> prov.dpg -> prov.upr -> prov.dpp

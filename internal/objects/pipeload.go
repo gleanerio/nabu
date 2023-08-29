@@ -78,7 +78,12 @@ func PipeLoad(v1 *viper.Viper, mc *minio.Client, bucket, object, spql string) ([
 	// Let's declare 10k lines the largest we want to send in.
 	log.Tracef("Graph size: %d\n", len(nt))
 
-	sprql, _ := config.GetSparqlConfig(v1)
+	//sprql, _ := config.GetSparqlConfig(v1)
+	ep := v1.GetString("flags.endpoint")
+	sprql, err := config.GetEndpoint(v1, ep, "bulk")
+	if err != nil {
+		log.Error(err)
+	}
 
 	scanner := bufio.NewScanner(strings.NewReader(nt))
 	lc := 0

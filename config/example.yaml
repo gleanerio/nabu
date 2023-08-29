@@ -5,6 +5,9 @@ minio:
   accesskey: akey
   secretkey: skey
   bucket: gleaner
+  region: null
+implementation_network:
+  orgname: iow
 context:
   cache: true
   strict: true
@@ -19,11 +22,53 @@ objects:
     - summoned/providera
     - prov/providera
     - org
-sparql:
-  endpoint: http://localhost/blazegraph/namespace/earthcube/sparql
-  endpointBulk: http://coreos.lan:3030/testing/data
-  endpointMethod: POST
-  contentType: application/n-quads
-  authenticate: false
-  username: ""
-  password: ""
+endpoints:
+  - server: blazegraph
+    type: sparql
+    url: http://coreos.lan:9090/blazegraph/namespace/iow/sparql
+    method: GET
+    contentType: text/x-nquads
+    authenticate: false
+    username: admin
+    password: jfpwd
+  - server: blazegraph
+    type: update
+    url: http://coreos.lan:9090/blazegraph/namespace/iow/sparql
+    method: POST
+    contentType: text/x-nquads
+    authenticate: false
+    username: admin
+    password: jfpwd
+  - server: blazegraph
+    type: bulk
+    url: http://coreos.lan:9090/blazegraph/namespace/iow/sparql
+    method: POST
+    contentType: text/x-nquads
+    authenticate: false
+    username: admin
+    password: jfpwd
+  - server: graphdb
+    type: sparql
+    url: http://coreos.lan:7200/repositories/testing
+    method: GET
+    contentType: text/x-nquads
+    authenticate: false
+    username: admin
+    password: jfpwd
+  - server: graphdb
+    type: update
+    url: http://coreos.lan:7200/repositories/testing/statements
+    method: POST
+    contentType: text/x-nquads
+    authenticate: false
+    username: admin
+    password: jfpwd
+  - server: graphdb
+    type: bulk
+    url: http://coreos.lan:7200/repositories/testing/statements
+    method: POST
+    contentType: text/x-nquads
+    authenticate: false
+    username: admin
+    password: jfpwd
+

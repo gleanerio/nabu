@@ -17,13 +17,18 @@ import (
 )
 
 func graphList(v1 *viper.Viper, mc *minio.Client, prefix string) ([]string, error) {
+	log.Println("Getting list of named graphs")
+
 	ga := []string{}
 
-	spql, err := config.GetSparqlConfig(v1)
+	//spql, err := config.GetSparqlConfig(v1)
+
+	ep := v1.GetString("flags.endpoint")
+	spql, err := config.GetEndpoint(v1, ep, "sparql")
 	if err != nil {
-		log.Println(err)
-		return ga, err
+		log.Error(err)
 	}
+
 	bucketName, err := config.GetBucketName(v1)
 	if err != nil {
 		log.Println(err)
@@ -47,7 +52,7 @@ func graphList(v1 *viper.Viper, mc *minio.Client, prefix string) ([]string, erro
 	params := url.Values{}
 	params.Add("query", d)
 	//req, err := http.NewRequest("GET", fmt.Sprintf("%s?%s", spql["endpoint"], params.Encode()), bytes.NewBuffer(pab))
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s?%s", spql.Endpoint, params.Encode()), bytes.NewBuffer(pab))
+	req, err := http.NewRequest(spql.Method, fmt.Sprintf("%s?%s", spql.URL, params.Encode()), bytes.NewBuffer(pab))
 	if err != nil {
 		log.Println(err)
 	}

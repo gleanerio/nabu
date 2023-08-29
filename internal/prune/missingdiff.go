@@ -1,7 +1,8 @@
 package prune
 
 // findMissingElements from chatGPT
-func findMissingElements(a, b []string) []string {
+// You'll have my job one done wont you!
+func findMissing(a, b []string) []string {
 	// Create a map to store the elements of ga.
 	gaMap := make(map[string]bool)
 	for _, s := range b {

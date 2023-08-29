@@ -13,13 +13,21 @@ import (
 // CLEAR removes ALL graphs
 func Clear(v1 *viper.Viper) ([]byte, error) {
 	//spql := v1.GetStringMapString("sparql")
-	spql, _ := config.GetSparqlConfig(v1)
+	//spql, _ := config.GetSparqlConfig(v1)
+
+	// CLEAR is a SPARQL UPDATE call, so be sure to grab the "update" URL
+	ep := v1.GetString("flags.endpoint")
+	spql, err := config.GetEndpoint(v1, ep, "update")
+	if err != nil {
+		log.Error(err)
+	}
+
 	d := fmt.Sprint("CLEAR ALL")
 
 	pab := []byte(d)
 
 	//req, err := http.NewRequest("POST", spql["endpoint"], bytes.NewBuffer(pab))
-	req, err := http.NewRequest("POST", spql.EndpointBulk, bytes.NewBuffer(pab))
+	req, err := http.NewRequest(spql.Method, spql.URL, bytes.NewBuffer(pab))
 	if err != nil {
 		log.Error(err)
 	}

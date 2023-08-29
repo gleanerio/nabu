@@ -14,7 +14,13 @@ import (
 // DropGet removes a graph
 func DropGet(v1 *viper.Viper, g string) ([]byte, error) {
 	//spql := v1.GetStringMapString("sparql")
-	spql, _ := config.GetSparqlConfig(v1)
+	//spql, _ := config.GetSparqlConfig(v1)
+	ep := v1.GetString("flags.endpoint")
+	spql, err := config.GetEndpoint(v1, ep, "update")
+	if err != nil {
+		log.Error(err)
+	}
+
 	// d := fmt.Sprintf("DELETE { GRAPH <%s> {?s ?p ?o} } WHERE {GRAPH <%s> {?s ?p ?o}}", g, g)
 	d := fmt.Sprintf("DROP GRAPH <%s> ", g)
 
@@ -26,7 +32,7 @@ func DropGet(v1 *viper.Viper, g string) ([]byte, error) {
 	params := url.Values{}
 	params.Add("query", d)
 	//req, err := http.NewRequest("GET", fmt.Sprintf("%s?%s", spql["endpoint"], params.Encode()), bytes.NewBuffer(pab))
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s?%s", spql.Endpoint, params.Encode()), bytes.NewBuffer(pab))
+	req, err := http.NewRequest(spql.Method, fmt.Sprintf("%s?%s", spql.URL, params.Encode()), bytes.NewBuffer(pab))
 	if err != nil {
 		log.Error(err)
 	}

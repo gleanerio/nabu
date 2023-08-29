@@ -16,3 +16,11 @@ curl -X POST -H 'Content-Type:application/n-quads'  --data-binary @May4Buildings
 ```bash
 curl -X POST -H 'Content-Type:text/x-nquads'  --data-binary @May4Buildings.nq  http://192.168.86.45:32772/blazegraph/namespace/loadtest/sparql
 ```
+
+```bash
+curl -H 'Accept: application/sparql-results+json' http://coreos.lan:9090/blazegraph/namespace/iow/sparql --data-urlencode 'query=select * where{ ?s ?p ?o } limit 10'
+```
+
+```bash
+curl -H 'Accept: application/sparql-results+json' http://coreos.lan:9090/blazegraph/namespace/iow/sparql --data-urlencode 'query=SELECT (COUNT(DISTINCT ?graph) AS ?namedGraphsCount)(COUNT(*) AS ?triplesCount)WHERE {GRAPH ?graph {?subject ?predicate ?object}}'
+```

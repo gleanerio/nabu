@@ -22,16 +22,21 @@ import (
 // BulkLoad
 // This functions could be used to load stored release graphs to the graph database
 func BulkLoad(v1 *viper.Viper, mc *minio.Client, bucketName string, item string) (string, error) {
-	spql, err := config.GetSparqlConfig(v1)
+	//spql, err := config.GetSparqlConfig(v1)
+	//if err != nil {
+	//	return "", err
+	//}
+	epflag := v1.GetString("flags.endpoint")
+	spql, err := config.GetEndpoint(v1, epflag, "bulk")
 	if err != nil {
-		return "", err
+		log.Error(err)
 	}
-	ep := spql.EndpointBulk
-	md := spql.EndpointMethod
+	ep := spql.URL
+	md := spql.Method
 	ct := spql.ContentType
 
 	// check for the required bulk endpoint, no need to move on from here
-	if spql.EndpointBulk == "" {
+	if spql.URL == "" {
 		return "", errors.New("The configuration file lacks an endpointBulk entry")
 	}
 
