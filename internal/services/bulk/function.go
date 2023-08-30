@@ -33,7 +33,7 @@ func BulkLoad(v1 *viper.Viper, mc *minio.Client, bucketName string, item string)
 	}
 	ep := spql.URL
 	md := spql.Method
-	ct := spql.ContentType
+	ct := spql.Accept
 
 	// check for the required bulk endpoint, no need to move on from here
 	if spql.URL == "" {

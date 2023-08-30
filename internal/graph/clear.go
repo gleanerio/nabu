@@ -31,7 +31,7 @@ func Clear(v1 *viper.Viper) ([]byte, error) {
 	if err != nil {
 		log.Error(err)
 	}
-	req.Header.Set("Content-Type", "application/sparql-update")
+	req.Header.Set("Content-Type", spql.Accept)
 	// req.Header.Set("Content-Type", "application/sparql-results+xml")
 
 	client := &http.Client{}

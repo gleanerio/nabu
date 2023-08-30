@@ -23,52 +23,41 @@ objects:
     - prov/providera
     - org
 endpoints:
-  - server: blazegraph
-    type: sparql
-    url: http://coreos.lan:9090/blazegraph/namespace/iow/sparql
-    method: GET
-    contentType: text/x-nquads
+  - service: ec_blazegraph
+    baseurl: http://coreos.lan:9090/blazegraph/namespace/iow
+    type: blaszgraph
     authenticate: false
     username: admin
     password: jfpwd
-  - server: blazegraph
-    type: update
-    url: http://coreos.lan:9090/blazegraph/namespace/iow/sparql
-    method: POST
-    contentType: text/x-nquads
+    modes:
+      - action: sparql
+        suffix: /sparql
+        accept: application/sparql-results+json
+        method: GET
+      - action: update
+        suffix: /sparql
+        accept: application/sparql-update
+        method: POST
+      - action: bulk
+        suffix: /sparql
+        accept: text/x-nquads
+        method: POST
+  - service: iow_graphdb
+    baseurl: http://coreos.lan:7200/repositories/testing
+    type: graphed
     authenticate: false
     username: admin
-    password: jfpwd
-  - server: blazegraph
-    type: bulk
-    url: http://coreos.lan:9090/blazegraph/namespace/iow/sparql
-    method: POST
-    contentType: text/x-nquads
-    authenticate: false
-    username: admin
-    password: jfpwd
-  - server: graphdb
-    type: sparql
-    url: http://coreos.lan:7200/repositories/testing
-    method: GET
-    contentType: text/x-nquads
-    authenticate: false
-    username: admin
-    password: jfpwd
-  - server: graphdb
-    type: update
-    url: http://coreos.lan:7200/repositories/testing/statements
-    method: POST
-    contentType: text/x-nquads
-    authenticate: false
-    username: admin
-    password: jfpwd
-  - server: graphdb
-    type: bulk
-    url: http://coreos.lan:7200/repositories/testing/statements
-    method: POST
-    contentType: text/x-nquads
-    authenticate: false
-    username: admin
-    password: jfpwd
-
+    password: jfpw
+    modes:
+      - action: sparql
+        suffix:  # no suffix needed for GraphDB
+        accept: application/sparql-results+json
+        method: GET
+      - action: update
+        suffix: /statements
+        accept: application/sparql-update
+        method: POST
+      - action: bulk
+        suffix: /statements
+        accept: text/x-nquads
+        method: POST

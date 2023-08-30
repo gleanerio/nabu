@@ -1,39 +1,39 @@
 package config
 
 import (
-	"errors"
 	"fmt"
-	"github.com/spf13/viper"
 	"log"
+
+	"github.com/spf13/viper"
 )
 
-//type EndPoints struct {
-//	EndPoints map[string][]EndPoint
-//	//EndPoints [][]EndPoints
-//}
-
 type EndPoint struct {
-	Server       string
+	Service      string
+	Baseurl      string
 	Type         string
-	URL          string
-	Method       string
-	ContentType  string
 	Authenticate bool
 	Username     string
 	Password     string
+	Modes        []Mode
 }
 
-//var EndPointsTemplate = map[string]interface{}{
-//	"endpoints": map[string]string{
-//		"name":         "",
-//		"url":          "",
-//		"method":       "",
-//		"contentType":  "",
-//		"authenticate": "",
-//		"username":     "",
-//		"password":     "",
-//	},
-//}
+type Mode struct {
+	Action string
+	Suffix string
+	Accept string
+	Method string
+}
+
+type ServiceMode struct {
+	Service      string
+	URL          string // combined Baseurl + Suffix
+	Type         string
+	Authenticate bool
+	Username     string
+	Password     string
+	Accept       string
+	Method       string
+}
 
 func GetEndPointsConfig(v1 *viper.Viper) ([]EndPoint, error) {
 	var subtreeKey = "endpoints"
@@ -52,18 +52,51 @@ func GetEndPointsConfig(v1 *viper.Viper) ([]EndPoint, error) {
 	return endpointsCfg, err
 }
 
-func GetEndpoint(v1 *viper.Viper, set, servertype string) (*EndPoint, error) {
+func GetEndpoint(v1 *viper.Viper, set, servertype string) (ServiceMode, error) {
+	// TODO change the return to be this
+	sm := ServiceMode{}
+	var err error
 
 	epcfg, err := GetEndPointsConfig(v1)
 	if err != nil {
 		log.Fatalf("error getting endpoint node in config %v", err)
 	}
 
+	// TODO if set nil
+	if set == "" && len(epcfg) != 1 {
+		// this is an error, they need to specify a service
+	}
+	if set == "" && len(epcfg) == 1 {
+		set = epcfg[0].Service
+	}
+
+	// loop through our endpointsfor the set and then loop through for the mode we want
 	for _, item := range epcfg {
-		if item.Server == set && item.Type == servertype {
-			return &item, nil // return the item if found
+		if item.Service == set {
+			for _, m := range item.Modes {
+				if m.Action == servertype {
+					// Now,collect the set and mode into a new
+					// ServiceMode struct so the approach is still spql.PROPERTY in the code
+					sm.Service = item.Service
+					sm.URL = item.Baseurl + m.Suffix
+					sm.Type = item.Type
+					sm.Authenticate = item.Authenticate
+					sm.Username = item.Username
+					sm.Password = item.Password
+					sm.Accept = m.Accept
+					sm.Method = m.Method
+					return sm, nil // return the item if found
+				}
+			}
 		}
 	}
 
-	return nil, errors.New("unable to find the set and or servertype you requested in the config")
+	// If at this point we don't have a SPARQL endpoint, then we might as well stop, there
+	// is not much Nabu can do
+	// TODO could also check that the URL is a valid http structure
+	if sm.URL == "" {
+		log.Fatalf("FATAL: error getting SPARQL endpoint node from config")
+	}
+
+	return sm, err
 }

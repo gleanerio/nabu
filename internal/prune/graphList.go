@@ -10,7 +10,6 @@ import (
 	"github.com/spf13/viper"
 	"github.com/tidwall/gjson"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strings"
@@ -20,8 +19,6 @@ func graphList(v1 *viper.Viper, mc *minio.Client, prefix string) ([]string, erro
 	log.Println("Getting list of named graphs")
 
 	ga := []string{}
-
-	//spql, err := config.GetSparqlConfig(v1)
 
 	ep := v1.GetString("flags.endpoint")
 	spql, err := config.GetEndpoint(v1, ep, "sparql")
@@ -41,12 +38,12 @@ func graphList(v1 *viper.Viper, mc *minio.Client, prefix string) ([]string, erro
 		return ga, err
 	}
 
-	log.Printf("Pattern: %s\n", gp)
-
 	d := fmt.Sprintf("SELECT DISTINCT ?g WHERE {GRAPH ?g {?s ?p ?o} FILTER regex(str(?g), \"^%s\")}", gp)
-	//d := fmt.Sprintf("SELECT DISTINCT ?g WHERE {GRAPH ?g {?s ?p ?o} FILTER regex(str(?g), \"^%s\")}", gp)
 
+	log.Printf("Pattern: %s\n", gp)
 	log.Printf("SPARQL: %s\n", d)
+	//log.Printf("Accept: %s\n", spql.Accept)
+	//log.Printf("URL: %s\n", spql.URL)
 
 	pab := []byte("")
 	params := url.Values{}
@@ -58,9 +55,7 @@ func graphList(v1 *viper.Viper, mc *minio.Client, prefix string) ([]string, erro
 	}
 
 	// These headers
-	req.Header.Set("Accept", "application/sparql-results+json")
-	//req.Header.Add("Accept", "application/sparql-update")
-	//req.Header.Add("Accept", "application/n-quads")
+	req.Header.Set("Accept", spql.Accept)
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
@@ -78,12 +73,13 @@ func graphList(v1 *viper.Viper, mc *minio.Client, prefix string) ([]string, erro
 		log.Println("response Body:", string(body))
 	}
 
+	// debugging calls
 	//fmt.Println("response Body:", string(body))
-	err = ioutil.WriteFile("myfile.txt", body, 0644)
-	if err != nil {
-		fmt.Println("An error occurred:", err)
-		return ga, err
-	}
+	//err = ioutil.WriteFile("myfile.txt", body, 0644)
+	//if err != nil {
+	//	fmt.Println("An error occurred:", err)
+	//	return ga, err
+	//}
 
 	result := gjson.Get(string(body), "results.bindings.#.g.value")
 	result.ForEach(func(key, value gjson.Result) bool {
