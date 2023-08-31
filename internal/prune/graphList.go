@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/gleanerio/nabu/internal/graph"
 	"github.com/gleanerio/nabu/pkg/config"
-	"github.com/minio/minio-go/v7"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"github.com/tidwall/gjson"
@@ -15,10 +14,10 @@ import (
 	"strings"
 )
 
-func graphList(v1 *viper.Viper, mc *minio.Client, prefix string) ([]string, error) {
+func graphList(v1 *viper.Viper, prefix string) ([]string, error) {
 	log.Println("Getting list of named graphs")
 
-	ga := []string{}
+	var ga []string
 
 	ep := v1.GetString("flags.endpoint")
 	spql, err := config.GetEndpoint(v1, ep, "sparql")
@@ -26,19 +25,21 @@ func graphList(v1 *viper.Viper, mc *minio.Client, prefix string) ([]string, erro
 		log.Error(err)
 	}
 
-	bucketName, err := config.GetBucketName(v1)
+	//bucketName, err := config.GetBucketName(v1)
+	//if err != nil {
+	//	log.Println(err)
+	//	return ga, err
+	//}
+
+	gp, err := graph.MakeURNPrefix(v1, prefix)
 	if err != nil {
 		log.Println(err)
 		return ga, err
 	}
 
-	gp, err := graph.MakeURNPrefix(v1, bucketName, prefix)
-	if err != nil {
-		log.Println(err)
-		return ga, err
-	}
+	//d := fmt.Sprintf("SELECT DISTINCT ?g WHERE {GRAPH ?g {?s ?p ?o} FILTER regex(str(?g), \"^%s\")}", gp)
 
-	d := fmt.Sprintf("SELECT DISTINCT ?g WHERE {GRAPH ?g {?s ?p ?o} FILTER regex(str(?g), \"^%s\")}", gp)
+	d := fmt.Sprint("SELECT DISTINCT ?g WHERE {GRAPH ?g {?s ?p ?o} }")
 
 	log.Printf("Pattern: %s\n", gp)
 	log.Printf("SPARQL: %s\n", d)
@@ -63,7 +64,12 @@ func graphList(v1 *viper.Viper, mc *minio.Client, prefix string) ([]string, erro
 		log.Println(err)
 	}
 
-	defer resp.Body.Close()
+	defer func() {
+		err := resp.Body.Close()
+		if err != nil {
+			log.Printf("Error closing response body: %v", err)
+		}
+	}()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
@@ -75,7 +81,7 @@ func graphList(v1 *viper.Viper, mc *minio.Client, prefix string) ([]string, erro
 
 	// debugging calls
 	//fmt.Println("response Body:", string(body))
-	//err = ioutil.WriteFile("myfile.txt", body, 0644)
+	//err = ioutil.WriteFile("body.txt", body, 0644)
 	//if err != nil {
 	//	fmt.Println("An error occurred:", err)
 	//	return ga, err
@@ -87,7 +93,12 @@ func graphList(v1 *viper.Viper, mc *minio.Client, prefix string) ([]string, erro
 		return true // keep iterating
 	})
 
-	log.Println(len(ga))
+	var gaf []string
+	for _, str := range ga {
+		if strings.HasPrefix(str, gp) { // check if string has prefix
+			gaf = append(gaf, str) // if yes, add it to newArray
+		}
+	}
 
-	return ga, nil
+	return gaf, nil
 }

@@ -19,7 +19,7 @@ urn:{bucket}:{docstatus}:{provider}:{sha}
 
 proposed
 ```
-urn:{program}:{organization}:{provider}:{sha}
+urn:{organization}:{provider}:{sha}
 ```
 
 So under the old approach we had URNs like
@@ -39,13 +39,13 @@ The new desired URN pattern would then look like the following.
 These would likely always be pulled from the summoned prefix, and as such be JSON-LD.  
 
 ```rdf
-urn:{program}:{organization}:{provider}:{sha}
+urn:{organization}:{provider}:{sha}
 ```
 
 ```rdf
-urn:gleaner.io:oih:edmo:0255293683036aac2a95a2479cc841189c0ac3f8
+urn:oih:edmo:0255293683036aac2a95a2479cc841189c0ac3f8
 or
-urn:gleaner.iow:iow:counties0:00010f9f071c39fcc0ca73eccad7470b675cd8a3 
+urn:iow:counties0:00010f9f071c39fcc0ca73eccad7470b675cd8a3 
 ```
 
 ## Consequences

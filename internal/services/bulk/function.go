@@ -52,8 +52,8 @@ func BulkLoad(v1 *viper.Viper, mc *minio.Client, bucketName string, item string)
 	// All the triples in the bulk file to then load as triples + general context (graph)
 	// Review if this graph g should b here since we are loading quads
 	// I don't think it should b.   validate with all the tested triple stores
-	bn := strings.Replace(bucketName, ".", ":", -1) // convert to urn : values, buckets with . are not valid IRIs
-	g, err := graph.MakeURN(v1, item, bn)
+	//bn := strings.Replace(bucketName, ".", ":", -1) // convert to urn : values, buckets with . are not valid IRIs
+	g, err := graph.MakeURN(v1, item)
 	if err != nil {
 		log.Error("gets3Bytes %v\n", err)
 		return "", err // Assume return. since on this error things are not good?

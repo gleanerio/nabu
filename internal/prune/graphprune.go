@@ -33,7 +33,7 @@ func Snip(v1 *viper.Viper, mc *minio.Client) error {
 		}
 
 		// collect the named graphs from graph associated with the source
-		ga, err := graphList(v1, mc, pa[p])
+		ga, err := graphList(v1, pa[p])
 		if err != nil {
 			log.Error(err)
 			return err
@@ -47,7 +47,7 @@ func Snip(v1 *viper.Viper, mc *minio.Client) error {
 		// This is OK since all KV pairs involve unique keys and unique values
 		var oam = map[string]string{}
 		for x := range oa {
-			g, err := graph.MakeURN(v1, oa[x], bucketName)
+			g, err := graph.MakeURN(v1, oa[x])
 			if err != nil {
 				log.Error("MakeURN error: %v\n", err)
 			}

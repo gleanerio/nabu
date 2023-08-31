@@ -108,7 +108,7 @@ func PipeCopy(v1 *viper.Viper, mc *minio.Client, name, bucket, prefix, destprefi
 			}
 
 			// 1) get graph URI
-			ctx, err := graph.MakeURN(v1, object.Key, bucket)
+			ctx, err := graph.MakeURN(v1, object.Key)
 			if err != nil {
 				return
 			}
