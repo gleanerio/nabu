@@ -19,19 +19,24 @@ import (
 	"github.com/minio/minio-go/v7"
 )
 
-// docfunc needs to be renamed to something like BulkUpate and made exported
+// BulkLoad
 // This functions could be used to load stored release graphs to the graph database
-func docfunc(v1 *viper.Viper, mc *minio.Client, bucketName string, item string) (string, error) {
-	spql, err := config.GetSparqlConfig(v1)
+func BulkLoad(v1 *viper.Viper, mc *minio.Client, bucketName string, item string) (string, error) {
+	//spql, err := config.GetSparqlConfig(v1)
+	//if err != nil {
+	//	return "", err
+	//}
+	epflag := v1.GetString("flags.endpoint")
+	spql, err := config.GetEndpoint(v1, epflag, "bulk")
 	if err != nil {
-		return "", err
+		log.Error(err)
 	}
-	ep := spql.EndpointBulk
-	md := spql.EndpointMethod
-	ct := spql.ContentType
+	ep := spql.URL
+	md := spql.Method
+	ct := spql.Accept
 
 	// check for the required bulk endpoint, no need to move on from here
-	if spql.EndpointBulk == "" {
+	if spql.URL == "" {
 		return "", errors.New("The configuration file lacks an endpointBulk entry")
 	}
 
@@ -47,8 +52,8 @@ func docfunc(v1 *viper.Viper, mc *minio.Client, bucketName string, item string) 
 	// All the triples in the bulk file to then load as triples + general context (graph)
 	// Review if this graph g should b here since we are loading quads
 	// I don't think it should b.   validate with all the tested triple stores
-	bn := strings.Replace(bucketName, ".", ":", -1) // convert to urn : values, buckets with . are not valid IRIs
-	g, err := graph.MakeURN(item, bn)
+	//bn := strings.Replace(bucketName, ".", ":", -1) // convert to urn : values, buckets with . are not valid IRIs
+	g, err := graph.MakeURN(v1, item)
 	if err != nil {
 		log.Error("gets3Bytes %v\n", err)
 		return "", err // Assume return. since on this error things are not good?

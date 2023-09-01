@@ -20,7 +20,7 @@ func PipeLoad(v1 *viper.Viper, mc *minio.Client, bucket, object, spql string) ([
 	//log.Info("Loading %s \n", object)
 
 	//s2c := strings.Replace(object, "/", ":", -1)
-	g, err := graph.MakeURN(object, bucket)
+	g, err := graph.MakeURN(v1, object)
 	if err != nil {
 		log.Error("gets3Bytes %v\n", err)
 		// should this just return. since on this error things are not good
@@ -78,7 +78,12 @@ func PipeLoad(v1 *viper.Viper, mc *minio.Client, bucket, object, spql string) ([
 	// Let's declare 10k lines the largest we want to send in.
 	log.Tracef("Graph size: %d\n", len(nt))
 
-	sprql, _ := config.GetSparqlConfig(v1)
+	//sprql, _ := config.GetSparqlConfig(v1)
+	ep := v1.GetString("flags.endpoint")
+	sprql, err := config.GetEndpoint(v1, ep, "bulk")
+	if err != nil {
+		log.Error(err)
+	}
 
 	scanner := bufio.NewScanner(strings.NewReader(nt))
 	lc := 0

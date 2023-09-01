@@ -6,19 +6,16 @@ import (
 )
 
 type Objects struct {
-	Bucket    string //`mapstructure:"MINIO_BUCKET"`
-	Domain    string //`mapstructure:"MINIO_DOMAIN"`
-	Prefix    []string
-	PrefixOff []string
+	Bucket string //`mapstructure:"MINIO_BUCKET"`
+	Domain string //`mapstructure:"MINIO_DOMAIN"`
+	Prefix []string
 }
 
 var ObjectTemplate = map[string]interface{}{
 	"objects": map[string]interface{}{
-		"bucket":    "gleaner",
-		"domain":    "us-east-1",
-		"endpoint":  "http://localhost/blazegraph/namespace/nabu/sparql",
-		"prefix":    map[string][]string{},
-		"prefixoff": map[string][]string{},
+		"bucket": "gleaner",
+		"domain": "us-east-1",
+		"prefix": map[string][]string{},
 	},
 }
 

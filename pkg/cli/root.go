@@ -3,26 +3,27 @@ package cli
 import (
 	"errors"
 	"fmt"
+	"mime"
+	"os"
+	"path"
+	"path/filepath"
+
 	"github.com/gleanerio/nabu/internal/common"
 	"github.com/gleanerio/nabu/internal/objects"
 	"github.com/gleanerio/nabu/pkg/config"
 	"github.com/minio/minio-go/v7"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"mime"
-	"os"
-	"path"
-	"path/filepath"
 
 	"github.com/spf13/viper"
 )
 
 var cfgFile, cfgName, cfgPath, nabuConfName string
 var minioVal, portVal, accessVal, secretVal, bucketVal string
-var sslVal bool
+var sslVal, dangerousVal bool
 var viperVal *viper.Viper
 var mc *minio.Client
-var prefixVal string
+var prefixVal, endpointVal string
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -71,6 +72,9 @@ func init() {
 	// will need a custom validator to say, hey use prefix.
 	//	rootCmd.PersistentFlags().StringVar(&prefixVal, "source", "", "prefix to run. Consistency with glcon commend")
 
+	// Enpoint Server setting var
+	rootCmd.PersistentFlags().StringVar(&endpointVal, "endpoint", "", "end point server set for the SPARQL endpoints")
+
 	rootCmd.PersistentFlags().StringVar(&cfgPath, "cfgPath", "configs", "base location for config files (default is configs/)")
 	rootCmd.PersistentFlags().StringVar(&cfgName, "cfgName", "local", "config file (default is local so configs/local)")
 	rootCmd.PersistentFlags().StringVar(&nabuConfName, "nabuConfName", "nabu", "config file (default is local so configs/local)")
@@ -84,6 +88,7 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&bucketVal, "bucket", "gleaner", "The configuration bucket")
 
 	rootCmd.PersistentFlags().BoolVar(&sslVal, "ssl", false, "Use SSL boolean")
+	rootCmd.PersistentFlags().BoolVar(&dangerousVal, "dangerous", false, "Use dangerous mode boolean")
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
 	//rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
@@ -144,6 +149,15 @@ func initConfig() {
 	//	// v1.Set("objects", map[string]string{"bucket": b, "prefix": NEWPREFIX, "region": r})
 	//	viperVal.Set("objects", map[string]string{"bucket": b, "prefix": p})
 	//}
+
+	if dangerousVal {
+		viperVal.Set("flags.dangerous", true)
+	}
+
+	if endpointVal != "" {
+		viperVal.Set("flags.endpoint", endpointVal)
+	}
+
 	if prefixVal != "" {
 		//out := viperVal.GetStringMapString("objects")
 		//d := out["domain"]

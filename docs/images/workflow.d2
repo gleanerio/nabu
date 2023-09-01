@@ -1,0 +1,77 @@
+direction: right
+
+
+gi: Get Image(s) {
+    style.fill: "#e0a3ff"
+    width: 200
+    height: 150
+}
+
+g: Gleaner Harvest {
+    style.fill: honeydew
+    width: 200
+    height: 150
+}
+
+data: Data Graph {
+    dr: Build Release Graph {
+       style.fill: "#f4a261"
+       width: 300
+    }
+    udr: Load Release Graph {
+       style.fill: "#f4a261"
+       width: 300
+     }
+
+    dp: Prune {
+        style.fill: "#f4a261"
+        width: 300
+    }
+}
+
+org: Organization Graph {
+    or: Prefix Load Graph {
+        style.fill: "#f4a261"
+        width: 300
+    }
+
+   # uor: Load Release Graph {
+   #     style.fill: "#f4a261"
+   #     width: 300
+   # }
+
+   # op:  Prune {
+   #     style.fill: "#f4a261"
+   #     width: 300
+   # }
+
+    # org.or -> org.uor -> org.op
+
+}
+
+prov: Provenance Graph {
+    pr: Build Release Graph {
+        style.fill: "#f4a261"
+        width: 300
+    }
+    dpg: Clear Current Graph{
+        style.fill: "#f4a261"
+        width: 300
+    }
+   upr:  Load Release Graph {
+        style.fill: "#f4a261"
+        width: 300
+    }
+    dpp: Delete Generated Data Graphs {
+        style.fill: "#f4a261"
+        width: 300
+    }
+}
+
+gi -> g
+g -> org.or
+g -> data.dr
+g -> prov.pr
+
+data.dr -> data.udr -> data.dp
+prov.pr -> prov.dpg -> prov.upr -> prov.dpp

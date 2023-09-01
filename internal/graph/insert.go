@@ -3,9 +3,10 @@ package graph
 import (
 	"bytes"
 	"fmt"
-	log "github.com/sirupsen/logrus"
 	"io/ioutil"
 	"net/http"
+
+	log "github.com/sirupsen/logrus"
 )
 
 func Insert(g, nt, spql, username, password string, auth bool) (string, error) {
@@ -23,6 +24,7 @@ func Insert(g, nt, spql, username, password string, auth bool) (string, error) {
 	if err != nil {
 		log.Error(err)
 	}
+
 	req.Header.Set("Content-Type", "application/sparql-update") // graphdb  blaze and jena  alt might be application/sparql-results+xml
 	req.Header.Set("Accept", "application/x-trig")              // graphdb
 

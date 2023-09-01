@@ -13,14 +13,19 @@ import (
 // Drop removes a graph
 func Drop(v1 *viper.Viper, g string) ([]byte, error) {
 	//spql := v1.GetStringMapString("sparql")
-	spql, _ := config.GetSparqlConfig(v1)
+	//spql, _ := config.GetSparqlConfig(v1)
 	// d := fmt.Sprintf("DELETE { GRAPH <%s> {?s ?p ?o} } WHERE {GRAPH <%s> {?s ?p ?o}}", g, g)
 	d := fmt.Sprintf("DROP GRAPH <%s> ", g)
-
 	pab := []byte(d)
 
+	ep := v1.GetString("flags.endpoint")
+	spql, err := config.GetEndpoint(v1, ep, "update")
+	if err != nil {
+		log.Error(err)
+	}
+
 	//req, err := http.NewRequest("POST", spql["endpoint"], bytes.NewBuffer(pab))
-	req, err := http.NewRequest("POST", spql.Endpoint, bytes.NewBuffer(pab))
+	req, err := http.NewRequest(spql.Method, spql.URL, bytes.NewBuffer(pab))
 	if err != nil {
 		log.Error(err)
 	}
