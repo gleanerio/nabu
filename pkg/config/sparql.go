@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+
 	"github.com/spf13/viper"
 )
 
@@ -27,12 +28,12 @@ var sparqlTemplate = map[string]interface{}{
 	},
 }
 
-func GetSparqlConfig(viperConfig *viper.Viper) (Sparql, error) {
+func DEPRECATEDGetSparqlConfig(viperConfig *viper.Viper) (Sparql, error) {
 	sub := viperConfig.Sub("sparql")
-	return ReadSparqlConfig(sub)
+	return readSparqlConfig(sub)
 }
 
-func ReadSparqlConfig(viperSubtree *viper.Viper) (Sparql, error) {
+func readSparqlConfig(viperSubtree *viper.Viper) (Sparql, error) {
 	var sparql Sparql
 	for key, value := range sparqlTemplate {
 		viperSubtree.SetDefault(key, value)

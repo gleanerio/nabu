@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"strings"
 	"sync"
 
 	"github.com/spf13/viper"
@@ -85,11 +86,16 @@ func PipeCopy(v1 *viper.Viper, mc *minio.Client, name, bucket, prefix, destprefi
 
 			s := string(b.Bytes())
 
+			nq := ""
 			//log.Println("Calling JSONLDtoNQ")
-			nq, err := graph.JSONLDToNQ(v1, s)
-			if err != nil {
-				log.Errorf(" failed to convert to NQ %s %s ", object.Key, err)
-				continue
+			if strings.HasSuffix(object.Key, ".nq") {
+				nq = s
+			} else {
+				nq, err = graph.JSONLDToNQ(v1, s)
+				if err != nil {
+					log.Errorf(" failed to convert to NQ %s %s ", object.Key, err)
+					continue
+				}
 			}
 
 			var snq string
@@ -105,7 +111,7 @@ func PipeCopy(v1 *viper.Viper, mc *minio.Client, name, bucket, prefix, destprefi
 			}
 
 			// 1) get graph URI
-			ctx, err := graph.MakeURN(object.Key, bucket)
+			ctx, err := graph.MakeURN(v1, object.Key)
 			if err != nil {
 				log.Errorf(" failed MakeURN %s %s ", object.Key, err)
 				continue
