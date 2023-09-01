@@ -70,14 +70,16 @@ func PipeCopy(v1 *viper.Viper, mc *minio.Client, name, bucket, prefix, destprefi
 		for object := range objectCh {
 			fo, err := mc.GetObject(context.Background(), bucket, object.Key, minio.GetObjectOptions{})
 			if err != nil {
-				fmt.Println(err)
+				log.Errorf(" failed to read object %s %s ", object.Key, err)
+				//fmt.Println(err)
 			}
-
+			log.Tracef(" processing  object %s  ", object.Key)
 			var b bytes.Buffer
 			bw := bufio.NewWriter(&b)
 
 			_, err = io.Copy(bw, fo)
 			if err != nil {
+				log.Errorf(" failed to read object %s %s ", object.Key, err)
 				log.Println(err)
 			}
 
@@ -86,8 +88,8 @@ func PipeCopy(v1 *viper.Viper, mc *minio.Client, name, bucket, prefix, destprefi
 			//log.Println("Calling JSONLDtoNQ")
 			nq, err := graph.JSONLDToNQ(v1, s)
 			if err != nil {
-				log.Println(err)
-				return
+				log.Errorf(" failed to convert to NQ %s %s ", object.Key, err)
+				continue
 			}
 
 			var snq string
@@ -97,24 +99,28 @@ func PipeCopy(v1 *viper.Viper, mc *minio.Client, name, bucket, prefix, destprefi
 			} else {
 				snq, err = graph.Skolemization(nq, object.Key)
 				if err != nil {
-					return
+					log.Errorf(" failed Skolemization %s %s ", object.Key, err)
+					continue
 				}
 			}
 
 			// 1) get graph URI
 			ctx, err := graph.MakeURN(object.Key, bucket)
 			if err != nil {
-				return
+				log.Errorf(" failed MakeURN %s %s ", object.Key, err)
+				continue
 			}
 			// 2) convert NT to NQ
 			csnq, err := graph.NtToNq(snq, ctx)
 			if err != nil {
-				return
+				log.Errorf(" failed NtToNq %s %s ", object.Key, err)
+				continue
 			}
 
 			_, err = pw.Write([]byte(csnq))
 			if err != nil {
-				return
+				log.Errorf(" failed pipe write %s %s ", object.Key, err)
+				continue
 			}
 		}
 	}()
@@ -125,6 +131,7 @@ func PipeCopy(v1 *viper.Viper, mc *minio.Client, name, bucket, prefix, destprefi
 		_, err := mc.PutObject(context.Background(), bucket, fmt.Sprintf("%s/%s", destprefix, name), pr, -1, minio.PutObjectOptions{})
 		//_, err := mc.PutObject(context.Background(), bucket, fmt.Sprintf("%s/%s", prefix, name), pr, -1, minio.PutObjectOptions{})
 		if err != nil {
+			log.Errorf(" failed PutObject bucket: %s  %s/%s ", bucket, destprefix, name)
 			log.Println(err)
 			return
 		}
