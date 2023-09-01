@@ -19,9 +19,13 @@ func MakeURN(v1 *viper.Viper, s string) (string, error) {
 		g   string // build the URN for the graph context string we use
 		err error
 	)
-
+	s3c := ""
 	check := prefixTransform(s) // change "summoned" to "data" if summoned is in the object prefix
-	s3c := getLastThree(check)
+	if strings.Contains(check, "orgs/") {
+		s3c = check
+	} else {
+		s3c = getLastThree(check)
+	}
 
 	g = fmt.Sprintf("urn:gleaner.io:%s:%s", gcfg.Orgname, s3c) // form the URN
 
@@ -97,7 +101,7 @@ func getLastThree(s string) string {
 }
 
 // getLastTwo from chatGPT
-// DEPRECATED
+
 func getLastTwo(s string) string {
 	// Split the string on the ":" character.
 	parts := strings.Split(s, ":")
