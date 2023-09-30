@@ -6,7 +6,7 @@ on:
     branches:
       - master
       - dev
-      - dev_docker
+      - dev_eco
 #    tags:
 #      - v3.*
   release:
