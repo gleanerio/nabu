@@ -46,10 +46,14 @@ func MakeURNPrefix(v1 *viper.Viper, prefix string) (string, error) {
 		err error
 	)
 
-	check := prefixTransform(prefix)
-	ps := strings.Split(check, "/")
+	if prefix == "orgs" {
+		g = fmt.Sprintf("urn:gleaner.io:%s:orgs", gcfg.Orgname)
 
-	g = fmt.Sprintf("urn:gleaner.io:%s:%s:%s", gcfg.Orgname, ps[len(ps)-1], ps[len(ps)-2])
+	} else {
+		check := prefixTransform(prefix)
+		ps := strings.Split(check, "/")
+		g = fmt.Sprintf("urn:gleaner.io:%s:%s:%s", gcfg.Orgname, ps[len(ps)-1], ps[len(ps)-2])
+	}
 
 	//fmt.Printf("=Prefix===========> %s \n\n", g)
 
