@@ -26,7 +26,8 @@ func GetImplNetworkConfig(viperConfig *viper.Viper) (ImplNetwork, error) {
 func readImpleNetworkConfig(implementation_networkSubtress *viper.Viper) (ImplNetwork, error) {
 	var gleanerCfg ImplNetwork
 	if implementation_networkSubtress == nil {
-		log.Warn("No Implementation Network in config file: Add \n implementation_network: \n   orgname: NAME    ")
+		// trace, otherwise  goes off for every item
+		log.Trace("No Implementation Network in config file: Add \n implementation_network: \n   orgname: NAME    ")
 		implementation_networkSubtress = viper.New()
 		//for key, value := range implNetworkTemplate {
 		//	implementation_networkSubtress.Set(key, value)
