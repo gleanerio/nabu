@@ -3,7 +3,6 @@ package bulk
 import (
 	"bytes"
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 	"strings"
@@ -37,7 +36,7 @@ func BulkLoad(v1 *viper.Viper, mc *minio.Client, bucketName string, item string)
 
 	// check for the required bulk endpoint, no need to move on from here
 	if spql.URL == "" {
-		return "", errors.New("The configuration file lacks an endpointBulk entry")
+		return "", errors.New("configuration file lacks an endpointBulk entry")
 	}
 
 	log.Printf("Object %s:%s for %s with method %s type %s", bucketName, item, ep, md, ct)
@@ -53,12 +52,13 @@ func BulkLoad(v1 *viper.Viper, mc *minio.Client, bucketName string, item string)
 	// Review if this graph g should b here since we are loading quads
 	// I don't think it should b.   validate with all the tested triple stores
 	//bn := strings.Replace(bucketName, ".", ":", -1) // convert to urn : values, buckets with . are not valid IRIs
-	g, err := graph.MakeURN(v1, item)
+	//g, err := graph.MakeURN(v1, item)
 	if err != nil {
 		log.Error("gets3Bytes %v\n", err)
 		return "", err // Assume return. since on this error things are not good?
 	}
-	url := fmt.Sprintf("%s?graph=%s", ep, g)
+	//url := fmt.Sprintf("%s?graph=%s", ep, g)  // NOTE 11-13-2023  ?graph with nquads fails with Oxigraph
+	url := ep // testing
 
 	// check if JSON-LD and convert to RDF
 	if strings.Contains(item, ".jsonld") {
@@ -73,8 +73,16 @@ func BulkLoad(v1 *viper.Viper, mc *minio.Client, bucketName string, item string)
 	if err != nil {
 		return "", err
 	}
-	req.Header.Set("Content-Type", ct) // needs to be x-nquads for blaze, n-quads for jena and graphdb
-	req.Header.Set("User-Agent", "EarthCube_DataBot/1.0")
+
+	headers := map[string]string{
+		"Content-Type": ct, // replace value with actual content
+		"User-Agent":   "EarthCube_DataBot/1.0",
+		// add other headers here
+	}
+
+	for k, v := range headers {
+		req.Header.Add(k, v)
+	}
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
@@ -87,8 +95,7 @@ func BulkLoad(v1 *viper.Viper, mc *minio.Client, bucketName string, item string)
 		}
 	}(resp.Body)
 
-	log.Println(resp)
-	body, err := io.ReadAll(resp.Body) // return body if you want to debugg test with it
+	body, err := io.ReadAll(resp.Body) // return body if you want to debug test with it
 	if err != nil {
 		log.Println(string(body))
 		return string(body), err
@@ -96,7 +103,7 @@ func BulkLoad(v1 *viper.Viper, mc *minio.Client, bucketName string, item string)
 
 	// report
 	log.Println(string(body))
-	log.Printf("success: %s : %d  : %s\n", item, len(b), ep)
+	log.Printf("status: %s : %d  : %s\n", item, len(b), ep)
 
 	return string(body), err
 }
