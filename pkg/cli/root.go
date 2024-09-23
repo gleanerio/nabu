@@ -18,7 +18,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-var cfgFile, cfgName, cfgPath, nabuConfName string
+var cfgFile, cfgURL, cfgName, cfgPath, nabuConfName string
 var minioVal, portVal, accessVal, secretVal, bucketVal string
 var sslVal, dangerousVal bool
 var viperVal *viper.Viper
@@ -75,6 +75,7 @@ func init() {
 	// Enpoint Server setting var
 	rootCmd.PersistentFlags().StringVar(&endpointVal, "endpoint", "", "end point server set for the SPARQL endpoints")
 
+	rootCmd.PersistentFlags().StringVar(&cfgURL, "cfgURL", "configs", "URL location for config file")
 	rootCmd.PersistentFlags().StringVar(&cfgPath, "cfgPath", "configs", "base location for config files (default is configs/)")
 	rootCmd.PersistentFlags().StringVar(&cfgName, "cfgName", "local", "config file (default is local so configs/local)")
 	rootCmd.PersistentFlags().StringVar(&nabuConfName, "nabuConfName", "nabu", "config file (default is local so configs/local)")
@@ -104,6 +105,11 @@ func initConfig() {
 		viperVal, err = config.ReadNabuConfig(filepath.Base(cfgFile), filepath.Dir(cfgFile))
 		if err != nil {
 			log.Fatal("cannot read config %s", err)
+		}
+	} else if cfgURL != "" {
+		viperVal, err = config.ReadNabuConfigURL(cfgURL)
+		if err != nil {
+			log.Fatal("cannot read config URL %s", err)
 		}
 	} else {
 		// Find home directory.

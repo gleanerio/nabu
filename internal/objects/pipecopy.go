@@ -47,10 +47,6 @@ func PipeCopy(v1 *viper.Viper, mc *minio.Client, name, bucket, prefix, destprefi
 			}
 		}(pw)
 
-		// Set and use a "single file flag" to bypass skolimaization since if it is a single file
-		// the JSON-LD to RDF will correctly map blank nodes.
-		// NOTE:  with a background context we can't get the len(channel) so we have to iterate it.
-		// This is fast, but it means we have to do the ListObjects twice
 		clen := 0
 		sf := false
 		ctx, cancel := context.WithCancel(context.Background())
@@ -67,25 +63,23 @@ func PipeCopy(v1 *viper.Viper, mc *minio.Client, name, bucket, prefix, destprefi
 
 		objectCh := mc.ListObjects(context.Background(), bucket, minio.ListObjectsOptions{Prefix: prefix, Recursive: isRecursive})
 
-		// for object := range mc.ListObjects(context.Background(), bucket, minio.ListObjectsOptions{Prefix: prefix, Recursive: isRecursive}, doneCh) {
+		lastProcessed := false
+		idList := make([]string, 0)
 		for object := range objectCh {
 			fo, err := mc.GetObject(context.Background(), bucket, object.Key, minio.GetObjectOptions{})
 			if err != nil {
 				fmt.Println(err)
+				continue
 			}
-
 			var b bytes.Buffer
 			bw := bufio.NewWriter(&b)
-
 			_, err = io.Copy(bw, fo)
 			if err != nil {
 				log.Println(err)
+				continue
 			}
-
 			s := string(b.Bytes())
-
 			nq := ""
-			//log.Println("Calling JSONLDtoNQ")
 			if strings.HasSuffix(object.Key, ".nq") {
 				nq = s
 			} else {
@@ -95,32 +89,58 @@ func PipeCopy(v1 *viper.Viper, mc *minio.Client, name, bucket, prefix, destprefi
 					return
 				}
 			}
-
 			var snq string
-
 			if sf {
-				snq = nq //  just pass through the RDF without trying to Skolemize since we ar a single fil
+				snq = nq
 			} else {
 				snq, err = graph.Skolemization(nq, object.Key)
 				if err != nil {
 					return
 				}
 			}
-
-			// 1) get graph URI
 			ctx, err := graph.MakeURN(v1, object.Key)
 			if err != nil {
 				return
 			}
-			// 2) convert NT to NQ
 			csnq, err := graph.NtToNq(snq, ctx)
 			if err != nil {
 				return
 			}
-
 			_, err = pw.Write([]byte(csnq))
 			if err != nil {
 				return
+			}
+			idList = append(idList, ctx)
+			lastProcessed = true
+		}
+
+		// Once we are done with the loop, put in the triples to associate all the graphURIs with the org.
+		if lastProcessed {
+
+			data := `_:b0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://schema.org/DataCatalog> .
+_:b0 <https://schema.org/dateCreated> "2024-09-20" .
+_:b0 <https://schema.org/description> "This is an example data catalog containing various datasets from this organization" .
+_:b0 <https://schema.org/provider> _:b1 .
+_:b0 <https://schema.org/publisher> _:b2 .
+_:b1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://schema.org/Organization> .
+_:b1 <https://schema.org/name> "Provider XYZ" .
+_:b2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://schema.org/Organization> .
+_:b2 <https://schema.org/name> "DeCoder" .
+`
+			for _, item := range idList {
+				data += `_:b0 <https://schema.org/dataset> <` + item + `> .` + "\n"
+			}
+
+			sdata, err := graph.Skolemization(data, "release graph prov for ORG")
+			if err != nil {
+				log.Println(err)
+			}
+
+			// Perform the final write to the pipe here
+			// ilstr := strings.Join(idList, ",")
+			_, err = pw.Write([]byte(sdata))
+			if err != nil {
+				log.Println(err)
 			}
 		}
 	}()
