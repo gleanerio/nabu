@@ -22,5 +22,25 @@ sparql:
   authenticate: false
   username: ""
   password: ""
+endpoints:
+  - service: blazegraph_local
+    baseurl: http://localhost/blazegraph/namespace/earthcube/sparql
+    type: blazegraph
+    authenticate: false
+    username: admin
+    password: jfpwd
+    modes:
+      - action: sparql
+        suffix: /sparql
+        accept: application/sparql-results+json
+        method: GET
+      - action: update
+        suffix: /sparql
+        accept: application/sparql-update
+        method: POST
+      - action: bulk
+        suffix: /sparql
+        accept: text/x-nquads
+        method: POST
 txtaipkg:
   endpoint: http://0.0.0.0:8000

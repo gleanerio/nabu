@@ -19,6 +19,7 @@ ADD ./cmd/nabu/nabu /nabu/
 ADD ./assets /nabu/assets
 
 RUN mkdir /assets
+# just in case thin
 #ADD ./assets/schemaorg-current-https.jsonld /assets/schemaorg-current-https.jsonld
 #ADD ./assets/schemaorg-current-http.jsonld /assets/schemaorg-current-http.jsonld
 RUN curl https://schema.org/version/latest/schemaorg-current-https.jsonld --output /assets/schemaorg-current-https.jsonld
