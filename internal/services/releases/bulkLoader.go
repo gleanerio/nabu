@@ -57,6 +57,7 @@ func BulkRelease(v1 *viper.Viper, mc *minio.Client) error {
 			return err
 		}
 
+		// TODO  Should this be optional / controlled by flag?
 		// Copy the "latest" graph just made to archive with a date
 		// This means the graph in latests is a duplicate of the most recently dated version in archive/{provider}
 		const layout = "2006-01-02-15-04-05"
