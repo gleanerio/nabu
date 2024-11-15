@@ -4,13 +4,14 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
+	"github.com/spf13/viper"
 	"io"
 	"strings"
 	"sync"
 	"time"
-
-	"github.com/spf13/viper"
 
 	"github.com/gleanerio/nabu/internal/graph"
 	log "github.com/sirupsen/logrus"
@@ -23,6 +24,24 @@ func getLastElement(s string) string {
 	return parts[len(parts)-1]
 }
 
+// GenerateDateHash generates a unique hash based on the current date and time.
+func generateDateHash() string {
+	// Get the current date and time
+	now := time.Now()
+
+	// Format the date and time as a string
+	dateString := now.Format("2006-01-02 15:04:05")
+
+	// Create a SHA256 hash
+	hash := sha256.New()
+	hash.Write([]byte(dateString))
+
+	// Convert the hash to a hex string
+	hashString := hex.EncodeToString(hash.Sum(nil))
+
+	return hashString
+}
+
 // PipeCopy writes a new object based on an prefix, this function assumes the objects are valid when concatenated
 // v1:  viper config object
 // mc:  minio client pointer
@@ -32,7 +51,8 @@ func getLastElement(s string) string {
 // destprefix:   destination prefix
 // sf: boolean to declare if single file or not.   If so, skip skolimization since JSON-LD library output is enough
 func PipeCopy(v1 *viper.Viper, mc *minio.Client, name, bucket, prefix, destprefix string) error {
-	log.Printf("PipeCopy with name: %s   bucket: %s  prefix: %s", name, bucket, prefix)
+	orgname := v1.GetString("implementation_network.orgname")
+	log.Printf("PipeCopy with name: %s   bucket: %s  prefix: %s  org name: %s", name, bucket, prefix, orgname)
 
 	pr, pw := io.Pipe()     // TeeReader of use?
 	lwg := sync.WaitGroup{} // work group for the pipe writes...
@@ -123,29 +143,23 @@ func PipeCopy(v1 *viper.Viper, mc *minio.Client, name, bucket, prefix, destprefi
 		// Once we are done with the loop, put in the triples to associate all the graphURIs with the org.
 		if lastProcessed {
 
-			data := `_:b0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://schema.org/DataCatalog> .
-_:b0 <https://schema.org/dateCreated> "` + time.Now().Format("2006-01-02 15:04:05") + `" . 
-_:b0 <https://schema.org/description> "GleanerIO Nabu generated catalog" .
-_:b0 <https://schema.org/provider> _:b1 .
-_:b0 <https://schema.org/publisher> _:b2 .
-_:b1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://schema.org/Organization> .
-_:b1 <https://schema.org/name> "` + getLastElement(prefix) + `" .
-_:b2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://schema.org/Organization> .
-_:b2 <https://schema.org/name> "` + bucket + `" .`
+			data := `<urn:gleaner.io:` + orgname + `:datacatalog> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://schema.org/DataCatalog> .
+<urn:gleaner.io:` + orgname + `:datacatalog> <https://schema.org/description> "GleanerIO Nabu generated catalog" .
+<urn:gleaner.io:` + orgname + `:datacatalog>  <https://schema.org/dateCreated> "` + time.Now().Format("2006-01-02 15:04:05") + `" .
+<urn:gleaner.io:` + orgname + `:datacatalog> <https://schema.org/provider> <urn:gleaner.io:` + orgname + `:provider> .
+<urn:gleaner.io:` + orgname + `:datacatalog> <https://schema.org/publisher> <urn:gleaner.io:` + getLastElement(prefix) + `:publisher> .
+<urn:gleaner.io:` + orgname + `:provider> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://schema.org/Organization> .
+<urn:gleaner.io:` + orgname + `:provider> <https://schema.org/name> "` + orgname + `" .
+<urn:gleaner.io:` + getLastElement(prefix) + `:publisher> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://schema.org/Organization> .
+<urn:gleaner.io:` + getLastElement(prefix) + `:publisher> <https://schema.org/name> "` + getLastElement(prefix) + `" .
+`
 
 			for _, item := range idList {
-				data += `_:b0 <https://schema.org/dataset> <` + item + `> .` + "\n"
+				data += `<urn:gleaner.io:` + orgname + `:datacatalog> <https://schema.org/dataset> <` + item + `> .` + "\n"
 			}
 
-			// TODO MakeURN with _:b0   Q's Will this work with a blank node? do after Skolemization?
-			// namedgraph, err := graph.MakeURN(v1, "resource IRI")
-			// sdataWithContext, err := graph.NtToNq(sdata, namedgraph)
-
-			// TODO:  Skolemize with sdataWithContext
-			sdata, err := graph.Skolemization(data, "release graph prov for ORG")
-			if err != nil {
-				log.Println(err)
-			}
+			namedgraph := "urn:gleaner.io:" + orgname + ":" + getLastElement(prefix) + ":datacatalog:" + generateDateHash()
+			sdata, err := graph.NtToNq(data, namedgraph)
 
 			// Perform the final write to the pipe here
 			// ilstr := strings.Join(idList, ",")
