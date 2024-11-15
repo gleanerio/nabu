@@ -24,3 +24,14 @@ curl -H 'Accept: application/sparql-results+json' http://coreos.lan:9090/blazegr
 ```bash
 curl -H 'Accept: application/sparql-results+json' http://coreos.lan:9090/blazegraph/namespace/iow/sparql --data-urlencode 'query=SELECT (COUNT(DISTINCT ?graph) AS ?namedGraphsCount)(COUNT(*) AS ?triplesCount)WHERE {GRAPH ?graph {?subject ?predicate ?object}}'
 ```
+
+
+### Oxigraph
+
+```bash
+curl -i -X PUT  -H 'Content-Type:text/x-nquads'    --data-binary @veupathdb_release.nq  http://localhost:7878/store
+```
+
+```bash
+curl -i -X POST  -H 'Content-Type:text/x-nquads'    --data-binary @veupathdb_release.nq  http://localhost:7878/store
+```
