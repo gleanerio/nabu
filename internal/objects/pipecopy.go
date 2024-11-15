@@ -8,6 +8,7 @@ import (
 	"io"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/spf13/viper"
 
@@ -16,6 +17,11 @@ import (
 
 	"github.com/minio/minio-go/v7"
 )
+
+func getLastElement(s string) string {
+	parts := strings.Split(s, "/")
+	return parts[len(parts)-1]
+}
 
 // PipeCopy writes a new object based on an prefix, this function assumes the objects are valid when concatenated
 // v1:  viper config object
@@ -118,19 +124,24 @@ func PipeCopy(v1 *viper.Viper, mc *minio.Client, name, bucket, prefix, destprefi
 		if lastProcessed {
 
 			data := `_:b0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://schema.org/DataCatalog> .
-_:b0 <https://schema.org/dateCreated> "2024-09-20" .
-_:b0 <https://schema.org/description> "This is an example data catalog containing various datasets from this organization" .
+_:b0 <https://schema.org/dateCreated> "` + time.Now().Format("2006-01-02 15:04:05") + `" . 
+_:b0 <https://schema.org/description> "GleanerIO Nabu generated catalog" .
 _:b0 <https://schema.org/provider> _:b1 .
 _:b0 <https://schema.org/publisher> _:b2 .
 _:b1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://schema.org/Organization> .
-_:b1 <https://schema.org/name> "Provider XYZ" .
+_:b1 <https://schema.org/name> "` + getLastElement(prefix) + `" .
 _:b2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://schema.org/Organization> .
-_:b2 <https://schema.org/name> "DeCoder" .
-`
+_:b2 <https://schema.org/name> "` + bucket + `" .`
+
 			for _, item := range idList {
 				data += `_:b0 <https://schema.org/dataset> <` + item + `> .` + "\n"
 			}
 
+			// TODO MakeURN with _:b0   Q's Will this work with a blank node? do after Skolemization?
+			// namedgraph, err := graph.MakeURN(v1, "resource IRI")
+			// sdataWithContext, err := graph.NtToNq(sdata, namedgraph)
+
+			// TODO:  Skolemize with sdataWithContext
 			sdata, err := graph.Skolemization(data, "release graph prov for ORG")
 			if err != nil {
 				log.Println(err)

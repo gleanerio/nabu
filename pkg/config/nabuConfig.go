@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"io"
 	"net/http"
@@ -41,7 +42,7 @@ func ReadNabuConfigURL(configURL string) (*viper.Viper, error) {
 		v.SetDefault(key, value)
 	}
 
-	fmt.Printf("Reading config from URL: %v\n", configURL)
+	log.Printf("Reading config from URL: %v\n", configURL)
 
 	resp, err := http.Get(configURL)
 	if err != nil {
@@ -82,10 +83,6 @@ func ReadNabuConfigURL(configURL string) (*viper.Viper, error) {
 		fmt.Printf("Error reading config from URL: %v\n", err)
 		return v, err
 	}
-
-	fmt.Printf("Config read from URL: %v\n", v.AllSettings())
-
-	//err = v.ReadInConfig()
 
 	return v, err
 }

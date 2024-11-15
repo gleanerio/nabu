@@ -178,3 +178,11 @@ eg use generated
 ```
 nabu object --cfgPath ../gleaner/configs --cfgName local milled/opentopography/ffa0df033bb3a8fc9f600c80df3501fe1a2dbe93.rdf
 ```
+
+### Using URL based configuration
+
+Nabu can also read the configuration file from over the network
+
+```
+go run ../../cmd/nabu/main.go release --cfgURL https://provisium.io/data/nabuconfig.yaml --prefix summoned/dataverse --endpoint localoxi
+```
