@@ -12,11 +12,15 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"unicode/utf8"
+
+	"github.com/spf13/viper"
 
 	"github.com/gleanerio/nabu/internal/graph"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/minio/minio-go/v7"
+	"golang.org/x/text/encoding/unicode"
 )
 
 func getLastElement(s string) string {
@@ -57,6 +61,8 @@ func PipeCopy(v1 *viper.Viper, mc *minio.Client, name, bucket, prefix, destprefi
 	pr, pw := io.Pipe()     // TeeReader of use?
 	lwg := sync.WaitGroup{} // work group for the pipe writes...
 	lwg.Add(2)
+
+	utf8Writer := unicode.UTF8.NewEncoder().Writer(pw)
 
 	// params for list objects calls
 	doneCh := make(chan struct{}) // , N) Create a done channel to control 'ListObjectsV2' go routine.
@@ -109,8 +115,16 @@ func PipeCopy(v1 *viper.Viper, mc *minio.Client, name, bucket, prefix, destprefi
 			s := string(b.Bytes())
 			nq := ""
 			if strings.HasSuffix(object.Key, ".nq") {
+				if !utf8.ValidString(s) {
+					log.Errorf("Invalid UTF-8 content in .nq file %s", object.Key)
+					continue
+				}
 				nq = s
 			} else {
+				if !utf8.ValidString(s) {
+					log.Errorf("Invalid UTF-8 content in JSON-LD file %s", object.Key)
+					continue
+				}
 				nq, err = graph.JSONLDToNQ(v1, s)
 				if err != nil {
 					log.Errorf(" failed to convert to NQ %s %s ", object.Key, err)
@@ -137,8 +151,11 @@ func PipeCopy(v1 *viper.Viper, mc *minio.Client, name, bucket, prefix, destprefi
 				log.Errorf(" failed NtToNq %s %s ", object.Key, err)
 				continue
 			}
-			_, err = pw.Write([]byte(csnq))
+
+			_, err = utf8Writer.Write([]byte(csnq))
 			if err != nil {
+				log.Errorf("Failed to write UTF-8 encoded content: %v", err)
+				continue
 				log.Errorf(" failed pipe write %s %s ", object.Key, err)
 				continue
 			}

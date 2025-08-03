@@ -17,6 +17,8 @@ require (
 	github.com/spf13/viper v1.9.0
 	github.com/tidwall/gjson v1.14.2
 	github.com/tidwall/sjson v1.2.5
+	golang.org/x/text v0.3.7
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0 // indirect
+
 )
