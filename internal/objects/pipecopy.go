@@ -14,8 +14,6 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/spf13/viper"
-
 	"github.com/gleanerio/nabu/internal/graph"
 	log "github.com/sirupsen/logrus"
 
