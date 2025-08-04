@@ -1,9 +1,0 @@
-Select *
-where
-{
-     graph <https://ufokn.org/test/> 
-     {
-       ?s ?p ?o
-     }
-}
-LIMIT 100

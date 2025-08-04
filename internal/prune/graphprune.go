@@ -1,190 +1,122 @@
 package prune
 
 import (
-	"bytes"
 	"fmt"
-	"github.com/gleanerio/nabu/internal/sparqlapi"
+
+	"github.com/gleanerio/nabu/internal/graph"
+	"github.com/gleanerio/nabu/internal/objects"
 	"github.com/gleanerio/nabu/pkg/config"
 	"github.com/minio/minio-go/v7"
 	"github.com/schollz/progressbar/v3"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
-	"github.com/tidwall/gjson"
-	"io/ioutil"
-	"net/http"
-	"net/url"
-	"strings"
 )
 
 // Snip removes graphs in TS not in object store
 func Snip(v1 *viper.Viper, mc *minio.Client) error {
-
 	var pa []string
 	//err := v1.UnmarshalKey("objects.prefix", &pa)
+
 	objs, err := config.GetObjectsConfig(v1)
 	bucketName, _ := config.GetBucketName(v1)
 	if err != nil {
-		log.Println(err)
+		log.Error(err)
 	}
 	pa = objs.Prefix
 
 	for p := range pa {
-
-		// do the object assembly
-		oa, err := ObjectList(v1, mc, pa[p])
+		// collect the objects associated with the source
+		oa, err := objects.ObjectList(v1, mc, pa[p])
 		if err != nil {
-			log.Println(err)
+			log.Error(err)
 			return err
 		}
 
-		// collect all the graphs from triple store
-		// TODO resolve issue with Graph and graphList vs graphListStatements
-		//ga, err := graphListStatements(v1, mc, pa[p])
-		ga, err := graphList(v1, mc, pa[p])
+		// collect the named graphs from graph associated with the source
+		ga, err := graphList(v1, pa[p])
 		if err != nil {
-			log.Println(err)
+			log.Error(err)
 			return err
 		}
 
-		//objs := v1.GetStringMapString("objects") // from above
 		// convert the object names to the URN pattern used in the graph
+		// and make a map where key = URN, value = object name
+		// NOTE:  since later we want to look up the object based the URN
+		// we will do it this way since mapswnat you to know a key, not a value, when
+		// querying them.
+		// This is OK since all KV pairs involve unique keys and unique values
+		var oam = map[string]string{}
 		for x := range oa {
-			s := strings.TrimSuffix(oa[x], ".rdf")
-			s2 := strings.Replace(s, "/", ":", -1)
-			g := fmt.Sprintf("urn:%s:%s", bucketName, s2)
-			oa[x] = g
+			g, err := graph.MakeURN(v1, oa[x])
+			if err != nil {
+				log.Error("MakeURN error: %v\n", err)
+			}
+			oam[g] = oa[x] // key (URN)= value (object prefixpath)
 		}
 
-		//compare lists..   anything IN graph not in objects list should be removed
-		d := difference(ga, oa) // return array of items in ga that are NOT in oa
+		// make an array of just the values for use with findMissing and difference functions
+		// we have in this package
+		var oag []string // array of all keys
+		for k, _ := range oam {
+			oag = append(oag, k)
+		}
 
-		fmt.Printf("Graph items: %d  Object items: %d  difference: %d\n", len(ga), len(oa), len(d))
+		//compare lists, anything IN graph not in objects list should be removed
+		d := difference(ga, oag)  // return items in ga that are NOT in oag, we should remove these
+		m := findMissing(oag, ga) // return items from oag we need to add
+
+		fmt.Printf("Current graph items: %d  Cuurent object items: %d\n", len(ga), len(oag))
+		fmt.Printf("Orphaned items to remove: %d\n", len(d))
+		fmt.Printf("Missing items to add: %d\n", len(m))
+
+		log.WithFields(log.Fields{"prefix": pa[p], "graph items": len(ga), "object items": len(oag), "difference": len(d),
+			"missing": len(m)}).Info("Nabu Prune")
 
 		// For each in d will delete that graph
-		bar := progressbar.Default(int64(len(d)))
-		for x := range d {
-			log.Printf("Remove graph: %s\n", d[x])
-			sparqlapi.Drop(v1, d[x])
-			bar.Add(1)
+		if len(d) > 0 {
+			bar := progressbar.Default(int64(len(d)))
+			for x := range d {
+				log.Infof("Removed graph: %s\n", d[x])
+				_, err = graph.Drop(v1, d[x])
+				if err != nil {
+					log.Error("Progress bar update issue: %v\n", err)
+				}
+				err = bar.Add(1)
+				if err != nil {
+					log.Error("Progress bar update issue: %v\n", err)
+				}
+			}
+		}
+
+		ep := v1.GetString("flags.endpoint")
+		spql, err := config.GetEndpoint(v1, ep, "bulk")
+		if err != nil {
+			log.Error(err)
+		}
+
+		//// load new ones
+		//spql, err := config.GetSparqlConfig(v1)
+		//if err != nil {
+		//	log.Error("prune -> config.GetSparqlConfig %v\n", err)
+		//}
+
+		if len(m) > 0 {
+			bar2 := progressbar.Default(int64(len(m)))
+			log.Info("uploading missing %n objects", len(m))
+			for x := range m {
+				np := oam[m[x]]
+				log.Tracef("Add graph: %s  %s \n", m[x], np)
+				_, err := objects.PipeLoad(v1, mc, bucketName, np, spql.URL)
+				if err != nil {
+					log.Error("prune -> pipeLoad %v\n", err)
+				}
+				err = bar2.Add(1)
+				if err != nil {
+					log.Error("Progress bar update issue: %v\n", err)
+				}
+			}
 		}
 	}
 
 	return nil
 }
-
-func graphList(v1 *viper.Viper, mc *minio.Client, prefix string) ([]string, error) {
-	ga := []string{}
-
-	//spql := v1.GetStringMapString("sparql")
-	//objs := v1.GetStringMapString("objects")
-	spql, _ := config.GetSparqlConfig(v1)
-	//objs,_ := config.GetObjectsConfig(v1)
-	bucketName, _ := config.GetBucketName(v1)
-	//gp := fmt.Sprintf("urn:%s:%s", objs["bucket"], strings.Replace(prefix, "/", ":", -1))
-	gp := fmt.Sprintf("urn:%s:%s", bucketName, strings.Replace(prefix, "/", ":", -1))
-	fmt.Printf("Pattern: %s\n", gp)
-
-	d := fmt.Sprintf("SELECT DISTINCT ?g WHERE {GRAPH ?g {?s ?p ?o} FILTER regex(str(?g), \"^%s\")}", gp)
-
-	//fmt.Println(d)
-
-	pab := []byte("")
-	params := url.Values{}
-	params.Add("query", d)
-	//req, err := http.NewRequest("GET", fmt.Sprintf("%s?%s", spql["endpoint"], params.Encode()), bytes.NewBuffer(pab))
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s?%s", spql.Endpoint, params.Encode()), bytes.NewBuffer(pab))
-	if err != nil {
-		log.Println(err)
-	}
-	req.Header.Set("Accept", "application/sparql-results+json")
-
-	//req.Header.Add("Accept", "application/sparql-update")
-	//req.Header.Add("Accept", "application/n-quads")
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		log.Println(err)
-	}
-
-	defer resp.Body.Close()
-
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		log.Println(strings.Repeat("ERROR", 5))
-		log.Println("response Status:", resp.Status)
-		log.Println("response Headers:", resp.Header)
-		log.Println("response Body:", string(body))
-
-	}
-
-	//fmt.Println("response Body:", string(body))
-
-	result := gjson.Get(string(body), "results.bindings.#.g.value")
-	result.ForEach(func(key, value gjson.Result) bool {
-		ga = append(ga, value.String())
-		return true // keep iterating
-	})
-
-	// ask := Ask{}
-	// json.Unmarshal(body, &ask)
-	return ga, nil
-}
-
-//
-//func graphListStatements(v1 *viper.Viper, mc *minio.Client, prefix string) ([]string, error) {
-//
-//	ga := []string{}
-//
-//	//spql := v1.GetStringMapString("sparql")
-//	//objs := v1.GetStringMapString("objects")
-//	spql, _ := config.GetSparqlConfig(v1)
-//	//objs,_ := config.GetObjectsConfig(v1)
-//	bucketName, _ := config.GetBucketName(v1)
-//
-//	gp := fmt.Sprintf("urn:%s:%s", bucketName, strings.Replace(prefix, "/", ":", -1))
-//	fmt.Printf("Pattern: %s\n", gp)
-//
-//	d := fmt.Sprintf("SELECT DISTINCT ?g WHERE {GRAPH ?g {?s ?p ?o} FILTER regex(str(?g), \"^%s\")}", gp)
-//
-//	fmt.Println(d)
-//
-//	pab := []byte("")
-//	params := url.Values{}
-//	params.Add("query", d)
-//	//req, err := http.NewRequest("GET", fmt.Sprintf("%s?%s", spql["endpoint"], params.Encode()), bytes.NewBuffer(pab))
-//	req, err := http.NewRequest("GET", fmt.Sprintf("%s?%s", spql.Endpoint, params.Encode()), bytes.NewBuffer(pab))
-//	if err != nil {
-//		log.Println(err)
-//	}
-//	// req.Header.Add("Accept", "application/sparql-update")
-//	req.Header.Add("Accept", "application/n-quads")
-//
-//	client := &http.Client{}
-//	resp, err := client.Do(req)
-//	if err != nil {
-//		log.Println(err)
-//	}
-//
-//	defer resp.Body.Close()
-//
-//	body, err := ioutil.ReadAll(resp.Body)
-//	if err != nil {
-//		log.Println(strings.Repeat("ERROR", 5))
-//		log.Println("response Status:", resp.Status)
-//		log.Println("response Headers:", resp.Header)
-//		log.Println("response Body:", string(body))
-//	}
-//
-//	// fmt.Println("response Body:", string(body))
-//
-//	result := gjson.Get(string(body), "results.bindings.#.g.value")
-//	result.ForEach(func(key, value gjson.Result) bool {
-//		ga = append(ga, value.String())
-//		return true // keep iterating
-//	})
-//
-//	// ask := Ask{}
-//	// json.Unmarshal(body, &ask)
-//	return ga, nil
-//}

@@ -1,12 +1,11 @@
 package cli
 
 import (
-	"fmt"
-
 	"github.com/gleanerio/nabu/pkg"
 
-	log "github.com/sirupsen/logrus"
 	"os"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/spf13/cobra"
 )
@@ -17,7 +16,6 @@ var PrefixCmd = &cobra.Command{
 	Short: "nabu prefix command",
 	Long:  `Load graphs from prefix to triplestore`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("prefix called")
 		err := pkg.Prefix(viperVal, mc)
 		if err != nil {
 			log.Fatal(err)

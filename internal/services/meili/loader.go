@@ -4,12 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-
 	"github.com/gleanerio/nabu/internal/objects"
 	"github.com/gleanerio/nabu/pkg/config"
 	"github.com/meilisearch/meilisearch-go"
-	"github.com/schollz/progressbar/v3"
 	log "github.com/sirupsen/logrus"
+	"os"
 
 	"github.com/minio/minio-go/v7"
 	"github.com/spf13/viper"
@@ -17,24 +16,26 @@ import (
 
 // ObjectAssembly collects the objects from a bucket to load
 func ObjectAssembly(v1 *viper.Viper, mc *minio.Client) error {
-	fmt.Println("MeiliSearch index started")
+	fmt.Println("MeiliSearch index started, reading server from GLEANERIO_MEILI_SERVER")
+	host := getEnv("GLEANERIO_MEILI_SERVER")
 
 	bucketName, _ := config.GetBucketName(v1)
 	objCfg, _ := config.GetObjectsConfig(v1)
 	pa := objCfg.Prefix
 
 	msc := meilisearch.NewClient(meilisearch.ClientConfig{
-		//Host: "http://127.0.0.1:7700",
-		Host: "https://index.geoconnex.us",
+		Host: host,
 	})
 
 	var err error
 
+	// TODO  even though this is removed, it would be good proactive to give a
+	// unique name based on something like time and other parameters
 	name := "bulkobject.json"
 
 	for p := range pa {
 		log.Printf("ToJSONArray for %s", pa[p])
-		objects.ToJSONArray(name, bucketName, pa[p], mc)
+		ToJSONArray(name, bucketName, pa[p], mc)
 		if err != nil {
 			return err
 		}
@@ -64,37 +65,14 @@ func ObjectAssembly(v1 *viper.Viper, mc *minio.Client) error {
 	return err
 }
 
-// ObjectAssembly collects the objects from a bucket to load
-func ObjectAssemblyORIG(v1 *viper.Viper, mc *minio.Client) error {
-	bucketName, _ := config.GetBucketName(v1)
-
-	oa, err := objects.GetObjects(v1, mc)
-	if err != nil {
-		return err
+func getEnv(key string) string {
+	value, exists := os.LookupEnv(key)
+	if !exists {
+		value = "default"
 	}
-
-	fmt.Println("MeiliSearch index started")
-
-	msc := meilisearch.NewClient(meilisearch.ClientConfig{
-		//Host: "http://127.0.0.1:7700",
-		Host: "https://index.geoconnex.us",
-	})
-
-	bar := progressbar.Default(int64(len(oa)))
-
-	// Single threaded loop
-	for item := range oa {
-		_, err := docfunc(v1, mc, msc, bucketName, oa[item], "endpoint")
-		if err != nil {
-			log.Println(err)
-		}
-		bar.Add(1)
-	}
-
-	return err
+	return value
 }
 
-// curl -u admin:Complexpass#123 -XPUT -d '{"name":"Prabhat Sharma"}' http://localhost:4080/api/myshinynewindex/document
 func docfunc(v1 *viper.Viper, mc *minio.Client, msc *meilisearch.Client, bucketName string, item string, endpoint string) ([]byte, error) {
 	// get item
 	b, _, err := objects.GetS3Bytes(mc, bucketName, item)
@@ -102,21 +80,10 @@ func docfunc(v1 *viper.Viper, mc *minio.Client, msc *meilisearch.Client, bucketN
 		return nil, err
 	}
 
-	// Build ID entry for JSON
-	//fp := filepath.Base(item)
-	//nns := strings.TrimSuffix(fp, path.Ext(fp))
-
-	//s := string(b)
-	//value, _ := sjson.Set(s, "id", nns)
-	//log.Println("---------------------------------------------------------------")
-	//log.Println(value)
-	//log.Println("---------------------------------------------------------------")
-
 	var doc interface{} // why was this a map[string]interface{} before?  bulk vs single..  doesn't seem so..
 	//json.Unmarshal([]byte(value), &doc)
 	json.Unmarshal(b, &doc)
 
-	//r, err := msc.Index("testi").AddDocuments(movies)
 	r, err := msc.Index("iow").AddDocuments(doc, "id")
 	if err != nil {
 		log.Println(err)
